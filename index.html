@@ -361,6 +361,11 @@ let drinkFilter='all', drinkSearch='', favs=[];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
 function toast(msg){const r=$('#toastRoot');r.innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>r.innerHTML='',2200);}
+function toastWithUndo(msg, undoFn){
+  const r=$('#toastRoot');
+  r.innerHTML=`<div class="toast" style="display:flex;gap:12px;align-items:center"><span>${esc(msg)}</span><button onclick="event.stopPropagation();(${undoFn.toString()})();this.parentElement.remove()" style="background:var(--primary-ink);color:var(--primary);border:none;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;cursor:pointer">↩ ${LANG==='en'?'Undo':'คืนค่า'}</button></div>`;
+  setTimeout(()=>{ if(r.querySelector('.toast')) r.innerHTML=''; },5000);
+}
 function modal(html){$('#modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="handle"></div>${html}</div></div>`;}
 function closeModal(){$('#modalRoot').innerHTML='';}
 const fmtG=g=>Math.round(g*10)/10;
@@ -518,10 +523,23 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
   <button class="btn big" onclick="startBrew('${id}',curScale,curSweetness,curIce)">▶ ${t('start_brew')}</button>
   <div class="row" style="margin-top:12px">
     <button class="btn ghost grow" style="${favs.includes(id)?'color:var(--gold)':''}" onclick="toggleFav('${id}');vDrinkDetail('${id}',curScale,curSweetness,curIce)">${favs.includes(id)?'★':'☆'} Fav</button>
+    <button class="btn ghost grow" onclick="shareDrink('${id}')">📤 ${LANG==='en'?'Share':'แชร์'}</button>
     <button class="btn ghost grow" onclick="drinkEditor('${id}')">✎ ${t('edit')}</button>
     <button class="btn ghost grow" onclick="dupDrink('${id}')">⧉ ${t('duplicate')}</button>
     ${r.seed?'':`<button class="btn ghost grow" style="color:var(--accent)" onclick="delDrink('${id}')">🗑 ${t('delete')}</button>`}
   </div>`;
+}
+async function shareDrink(id){
+  const r=await dbGet('drinks',id); if(!r)return;
+  let txt='☕ '+tn(r.name)+'\n';
+  if(r.source) txt+='📖 '+r.source+'\n';
+  txt+='\n📋 '+t('ingredients')+':\n';
+  r.ingredients.forEach(i=>{ txt+='  • '+tn(i.name)+': '+i.amount+' '+i.unit+' ('+i.cost+' ฿)\n'; });
+  txt+='\n📝 '+t('steps')+':\n';
+  r.steps.forEach((s,i)=>{ txt+='  '+(i+1)+'. '+tn(s.t)+(s.m?' ⏱ '+s.m+'min':'')+'\n    '+tn(s.d)+'\n'; });
+  txt+='\n📱 Brew Center · brew-center.app';
+  try{ await navigator.clipboard.writeText(txt); toast(t('copied')); }
+  catch(e){ prompt(LANG==='en'?'Copy this recipe:':'คัดลอกสูตร:',txt); }
 }
 async function dupDrink(id){
   const r=await dbGet('drinks',id);
@@ -529,7 +547,17 @@ async function dupDrink(id){
   if(typeof c.name==='object'){c.name={en:c.name.en+' (copy)',th:(c.name.th||c.name.en)+' (copy)'};}else c.name+=' (copy)';
   await dbPut('drinks',c); toast(t('data_saved')); vDrinkDetail(c.id);
 }
-async function delDrink(id){if(!confirm(t('confirm_del')))return; await dbDel('drinks',id); go('drinks');}
+async function delDrink(id){
+  if(!confirm(t('confirm_del')))return;
+  const r=await dbGet('drinks',id);
+  await dbDel('drinks',id);
+  if(r){ const trash=await kvGet('trash')||[]; trash.push({item:r,type:'drink',at:Date.now()}); await kvSet('trash',trash.slice(-5)); }
+  go('drinks');
+  toastWithUndo(LANG==='en'?'Deleted.':'ลบแล้ว', async ()=>{
+    const t=await kvGet('trash')||[]; const idx=t.findIndex(x=>x.item.id===id);
+    if(idx>=0){ await dbPut('drinks',t[idx].item); t.splice(idx,1); await kvSet('trash',t); go('drinks'); toast(t('data_saved')); }
+  });
+}
 
 /* ============ Drink editor ============ */
 let ed=null;
@@ -1052,7 +1080,17 @@ function addLogPhoto(input){
   };
   rd.readAsDataURL(file); input.value='';
 }
-async function delLog(id){if(!confirm(t('confirm_del')))return; await dbDel('logs',id); vLog();}
+async function delLog(id){
+  if(!confirm(t('confirm_del')))return;
+  const l=await dbGet('logs',id);
+  await dbDel('logs',id);
+  if(l){ const trash=await kvGet('trash')||[]; trash.push({item:l,type:'log',at:Date.now()}); await kvSet('trash',trash.slice(-5)); }
+  vLog();
+  toastWithUndo(LANG==='en'?'Log deleted.':'ลบบันทึกแล้ว', async ()=>{
+    const t=await kvGet('trash')||[]; const idx=t.findIndex(x=>x.item.id===id);
+    if(idx>=0){ await dbPut('logs',t[idx].item); t.splice(idx,1); await kvSet('trash',t); vLog(); toast(t('data_saved')); }
+  });
+}
 
 /* ============ Settings / Backup ============ */
 async function openSettings(){
@@ -1063,7 +1101,7 @@ async function openSettings(){
   <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
   <button class="btn ghost big" style="margin-top:10px" onclick="$('#impFile').click()">⬆ ${t('import_data')}</button>
   <div class="note" style="margin-top:14px"><b>${t('last_backup')}:</b> ${lb||t('never_backup')}<br>${t('auto_backup_note')}</div>
-  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.5 · Made with ☕ for baristas</div>
+  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.6 · Made with ☕ for baristas</div>
   <button class="btn ghost big" style="margin-top:10px" onclick="closeModal()">${t('close')}</button>`);
 }
 async function gatherBackup(){
@@ -1129,6 +1167,10 @@ const GUIDE=[
  {icon:'🌐',t:{en:'Language, Theme & Install',th:'ภาษา ธีม และติดตั้ง'},d:{en:'Switch EN/TH and light/dark mode anytime. Add to home screen for full-screen offline use like a real app.',th:'สลับภาษาและโหมดสว่าง/มืดได้ทุกเมื่อ เพิ่มลงหน้าจอโฮมเพื่อใช้เต็มจอแบบออฟไลน์เหมือนแอปจริง'}},
 ];
 const CHANGELOG=[
+ {v:'1.6',d:'2026-06-08',c:[
+   {en:'📤 Share recipe — copy a drink recipe as formatted text to share with staff or friends.',th:'📤 แชร์สูตร — คัดลอกสูตรเครื่องดื่มเป็นข้อความ formatted เพื่อแชร์ให้พนักงานหรือเพื่อน'},
+   {en:'↩ Undo delete — accidentally deleted a drink or log entry? Tap Undo in the notification to restore it.',th:'↩ ยกเลิกการลบ — เผลอลบเมนูหรือบันทึก? แตะ Undo ในแจ้งเตือนเพื่อกู้คืนทันที'}]},
+ {v:'1.5',d:'2026-06-08',c:[
  {v:'1.5',d:'2026-06-08',c:[
    {en:'💾 Remember last settings — cup size, ice level, and sweetness are saved per drink. Open a drink and your preferences are already set!',th:'💾 จำค่าล่าสุด — ขนาดแก้ว ระดับน้ำแข็ง และความหวาน ถูกบันทึกต่อเครื่องดื่ม เปิดเมนูครั้งต่อไปค่าที่เคยตั้งไว้ก็พร้อมใช้เลย!'},
    {en:'⭐ Favorites — star your go-to drinks. Filter by favorites and see them at the top of the menu.',th:'⭐ รายการโปรด — กดดาวให้เมนูที่ชอบ กรองดูเฉพาะรายการโปรดและแสดงไว้ด้านบนสุดของเมนู'}]},
