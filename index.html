@@ -653,7 +653,7 @@ async function vBrew(){
   if(!r){session=null;await kvSet('session',null);return vBrew();}
   const s=r.steps[session.step], last=session.step>=r.steps.length-1;
   $('#view').innerHTML=`
-  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}${session.ice>0?` · 🧊 ${session.ice===0.3?'Regular':session.ice===0.5?'Extra':'Ice'}`:''}${session.ice<0?` · 🧊 เติมเต็มแก้ว`:''}${session.sweetness&&session.sweetness!==1?` · 🍬 ${session.sweetness*100}%`:''}</div>
+  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}${session.ice>0?` · 🧊 ${session.ice===0.3?t('ice_regular'):session.ice===0.5?t('ice_extra'):'Ice'}`:''}${session.ice<0?` · 🧊 ${t('ice_fill')}`:''}${session.sweetness!=null&&session.sweetness!==1?` · 🍬 ${session.sweetness*100}%`:''}${session.sweetness===0?` · 🍬 0%`:''}</div>
   <h1 style="font-size:22px;margin:2px 0 4px">${t('step')} ${session.step+1} ${t('of')} ${r.steps.length}: ${esc(tn(s.t))}</h1>
   <div class="progressbar"><i style="width:${(session.step)/r.steps.length*100}%"></i></div>
   <div class="card">
@@ -671,7 +671,7 @@ async function vBrew(){
   </div>
   <button class="btn big ${last?'warn':''}" onclick="${last?'finishBrew()':'nextStep()'}">${last?'✓ '+t('finish_brew'):t('next_step')+' ›'}</button>
   <div class="row" style="margin-top:12px">
-    <button class="btn ghost grow" onclick="vDrinkDetail('${r.id}',${session.scale})">${t('nav_drinks')}: ${t('ingredients')}</button>
+    <button class="btn ghost grow" onclick="vDrinkDetail('${r.id}',${session.scale},${session.sweetness},${session.ice})">${t('nav_drinks')}: ${t('ingredients')}</button>
     <button class="btn ghost" style="color:var(--accent)" onclick="abortBrew()">✕ ${t('abort')}</button>
   </div>
   <div class="note" style="text-align:center;margin-top:14px">🔆 ${t('keep_awake')}</div>`;
@@ -857,7 +857,8 @@ const TOOLS={
     <div class="seg" style="margin-bottom:8px">
       <button id="dilNone" onclick="dilSet('none')">${t('no_ice')}</button>
       <button id="dilReg" class="on" onclick="dilSet('regular')">${t('regular_ice')}</button>
-      <button id="dilExtra" onclick="dilSet('extra')">${t('extra_ice')}</button></div>
+      <button id="dilExtra" onclick="dilSet('extra')">${t('extra_ice')}</button>
+      <button id="dilFill" onclick="dilSet('fill')">${t('ice_fill')}</button></div>
     <div class="result-box">
       <div class="note">${t('adjusted_vol')}</div><div class="v" id="dilAdj"></div>
       <div class="note">${t('ice_to_add')}</div><div class="v" id="dilIce" style="font-size:24px"></div>
@@ -867,13 +868,13 @@ const TOOLS={
  }
 };
 let dilLevel='regular';
-function dilSet(l){dilLevel=l;$('#dilNone').classList.toggle('on',l==='none');$('#dilReg').classList.toggle('on',l==='regular');$('#dilExtra').classList.toggle('on',l==='extra');dilCalc();}
+function dilSet(l){dilLevel=l;$('#dilNone').classList.toggle('on',l==='none');$('#dilReg').classList.toggle('on',l==='regular');$('#dilExtra').classList.toggle('on',l==='extra');$('#dilFill').classList.toggle('on',l==='fill');dilCalc();}
 function dilCalc(){
   const vol=+$('#dilVol').value||0;
-  const ratios={none:{adj:1,ice:0},regular:{adj:.7,ice:.3},extra:{adj:.5,ice:.5}};
+  const ratios={none:{adj:1,ice:0},regular:{adj:.7,ice:.3},extra:{adj:.5,ice:.5},fill:{adj:1,ice:0,note:'Fill to glass'}};
   const r=ratios[dilLevel];
-  $('#dilAdj').textContent=Math.round(vol*r.adj)+' ml';
-  $('#dilIce').textContent=Math.round(vol*r.ice)+' ml (≈'+(Math.round(vol*r.ice/30))+' cubes)';
+  $('#dilAdj').textContent=Math.round(vol*r.adj)+' ml'+(dilLevel==='fill'?' (brew at recipe strength)':'');
+  $('#dilIce').textContent=dilLevel==='fill'?'Fill remaining space with ice':(Math.round(vol*r.ice)+' ml (≈'+Math.round(vol*r.ice/30)+' cubes)');
 }
 function scCalc(){const f=+$('#scFrom').value||0,t=+$('#scTo').value||0;$('#scOut').textContent=f?'× '+(Math.round(t/f*100)/100):'—';}
 function uCalc(){const a=+$('#uAmt').value||0,u=$('#uUnit').value;
