@@ -430,6 +430,7 @@ async function vDrinks(){
 
 let curScale=1, curSweetness=1, curIce=0.3;
 const CUP_PRESETS={S:1, M:1.3, L:1.8};
+const CUP_VOL_ML={S:355, M:473, L:650}; // physical cup volumes for Fill mode
 let curCup=null;
 async function vDrinkDetail(id,scale,sweetness,ice,cup){
   const r=await dbGet("drinks",id); if(!r)return go("drinks");
@@ -438,11 +439,12 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
   const isIce=i=>(tn(i.name)||"").toLowerCase().includes("ice")||(tn(i.name)||"").toLowerCase().includes("น้ำแข็ง");
   const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(i.sweetener?curSweetness:1),0);
   const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(isIce(i)?0:1)*(i.sweetener?curSweetness:1),0);
-  // curIce < 0 = fill mode (Thai style): ice fills remaining space in glass
+  // curIce < 0 = fill mode (Thai style): brew liquid at recipe strength, ice fills remaining space in glass
   const fillMode=curIce<0;
-  const realIce=fillMode?Math.max(0,(fullVol-nonIceVol)/fullVol):curIce;
-  const totalVol=fillMode?Math.max(fullVol,nonIceVol):fullVol;
-  const iceVol=fillMode?Math.max(0,totalVol-nonIceVol):totalVol*realIce;
+  const cupTargetVol=curCup?CUP_VOL_ML[curCup]:curScale*(r.serves||1)*355; // physical cup volume
+  const realIce=fillMode?Math.max(0,(cupTargetVol-nonIceVol)/cupTargetVol):curIce;
+  const totalVol=fillMode?cupTargetVol:fullVol;
+  const iceVol=fillMode?Math.max(0,cupTargetVol-nonIceVol):totalVol*realIce;
   const liquidVol=totalVol-iceVol;
   const liquidScale=fillMode?1:(nonIceVol>0?liquidVol/nonIceVol:1);
   const adjAmt=i=>{let a=i.amount*curScale*(isIce(i)?(iceVol/(mlPerUnit(i)*curScale||0.001)):liquidScale)*(i.sweetener?curSweetness:1); return a;};
@@ -469,12 +471,12 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
 
     <h3 style="margin-top:14px;margin-bottom:4px">🧊 ${t('ice_level')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[{k:'none',v:0},{k:'fill',v:-1},{k:'regular',v:0.3},{k:'extra',v:0.5}].map(o=>`<button class="${curIce===o.v?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${curSweetness},${o.v},${curCup||'null'})">${t('ice_'+o.k)}</button>`).join('')}
+      ${[{k:'none',v:0},{k:'fill',v:-1},{k:'regular',v:0.3},{k:'extra',v:0.5}].map(o=>`<button class="${curIce===o.v?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${curSweetness},${o.v},${JSON.stringify(curCup)})">${t('ice_'+o.k)}</button>`).join('')}
     </div>
     ${r.ingredients.some(i=>i.sweetener)?`
     <h3 style="margin-top:14px;margin-bottom:4px">🍬 ${t('sweetness')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m},${curIce},${curCup||'null'})">${t('sweetness_'+(m*100))}</button>`).join('')}
+      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m},${curIce},${JSON.stringify(curCup)})">${t('sweetness_'+(m*100))}</button>`).join('')}
     </div>`:''}
     <div class="result-box" style="margin-top:10px">
       <div class="note">${t('total_volume')} · ${t('cost_est')}</div>
@@ -487,7 +489,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
     <table class="ing">${r.ingredients.map(i=>`<tr>
       <td>${esc(tn(i.name))}</td>
       <td>${fmtG(adjAmt(i))} ${i.unit||'ml'}</td>
-      <td>${((i.cost||0)*curScale*(i.sweetener?curSweetness:1)*(isIce(i)?1:(1-curIce))).toFixed(1)} ฿</td></tr>`).join('')}</table>
+      <td>${((i.cost||0)*curScale*(isIce(i)?(iceVol/(i.amount*mlPerUnit(i)*curScale||0.001)):liquidScale)*(i.sweetener?curSweetness:1)).toFixed(1)} ฿</td></tr>`).join('')}</table>
   </div>
   <div class="card">
     <h3>${t('steps')}</h3>
@@ -596,7 +598,7 @@ Rules:
 - "m" = timer minutes for that step (0 if no waiting).
 - "cost" = estimated ingredient cost in Thai Baht (฿) per the amount listed. Be reasonable for a Thai cafe.
 - Mark sugar, syrup, honey, condensed milk, chocolate sauce as "sweetener": true. Other ingredients omit this field.
-- If the recipe mentions ice, include it as an ingredient with unit "cup".
+- Do NOT include ice as an ingredient — the app handles ice level separately (No Ice / Regular / Extra / Fill modes).
 - Keep step titles short; put details in "d".
 - Respond in ${LANG==='th'?'Thai (keep coffee terms like espresso, shot, latte art in English)':'English'}.
 
