@@ -152,7 +152,7 @@ pre.code{background:var(--surface2); border:1px solid var(--line); border-radius
 /* ============ i18n ============ */
 const I18N = {
   cup_size:["Cup Size","ขนาดแก้ว"], cup_S:["S (12oz)","S (12oz)"], cup_M:["M (16oz)","M (16oz)"], cup_L:["L (22oz)","L (22oz)"], cup_custom:["Custom","กำหนดเอง"],
-  ice_level:["Ice","น้ำแข็ง"], ice_none:["No Ice","ไม่ใส่น้ำแข็ง"], ice_regular:["Regular","ปกติ"], ice_extra:["Extra","เต็มแก้ว"],
+  ice_level:["Ice","น้ำแข็ง"], ice_none:["No Ice","ไม่ใส่น้ำแข็ง"], ice_fill:["Fill (เติมเต็ม)","เติมเต็มแก้ว"], ice_regular:["Regular 30%","ปกติ 30%"], ice_extra:["Extra 50%","เต็ม 50%"],
   sweetness_0:["0%","0%"], sweetness_25:["25%","25%"], sweetness_50:["50%","50%"], sweetness_75:["75%","75%"], sweetness_100:["100%","100%"],
   nav_drinks:["Drinks","เครื่องดื่ม"], nav_brew:["Brew","เริ่มชง"], nav_tools:["Tools","เครื่องมือ"],
   nav_stock:["Stock","สต็อก"], nav_log:["Log","บันทึก"],
@@ -438,12 +438,15 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
   const isIce=i=>(tn(i.name)||"").toLowerCase().includes("ice")||(tn(i.name)||"").toLowerCase().includes("น้ำแข็ง");
   const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(i.sweetener?curSweetness:1),0);
   const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(isIce(i)?0:1)*(i.sweetener?curSweetness:1),0);
-  const totalVol=fullVol;
-  const iceVol=totalVol*curIce;
+  // curIce < 0 = fill mode (Thai style): ice fills remaining space in glass
+  const fillMode=curIce<0;
+  const realIce=fillMode?Math.max(0,(fullVol-nonIceVol)/fullVol):curIce;
+  const totalVol=fillMode?Math.max(fullVol,nonIceVol):fullVol;
+  const iceVol=fillMode?Math.max(0,totalVol-nonIceVol):totalVol*realIce;
   const liquidVol=totalVol-iceVol;
-  const liquidScale=nonIceVol>0?liquidVol/nonIceVol:1;
-  const adjAmt=i=>{let a=i.amount*curScale*(isIce(i)?(iceVol/mlPerUnit(i)/curScale):liquidScale)*(i.sweetener?curSweetness:1); return a;};
-  const cost=r.ingredients.reduce((a,i)=>a+(i.cost||0)*curScale*(isIce(i)?(iceVol/(i.amount*mlPerUnit(i)*curScale||1)):liquidScale)*(i.sweetener?curSweetness:1),0);
+  const liquidScale=fillMode?1:(nonIceVol>0?liquidVol/nonIceVol:1);
+  const adjAmt=i=>{let a=i.amount*curScale*(isIce(i)?(iceVol/(mlPerUnit(i)*curScale||0.001)):liquidScale)*(i.sweetener?curSweetness:1); return a;};
+  const cost=r.ingredients.reduce((a,i)=>a+(i.cost||0)*curScale*(isIce(i)?(iceVol/(i.amount*mlPerUnit(i)*curScale||0.001)):liquidScale)*(i.sweetener?curSweetness:1),0);
   const hasIce=r.ingredients.some(i=>isIce(i));
   $('#view').innerHTML=`
   <button class="iconbtn" onclick="go('drinks')" style="margin-bottom:12px">‹ ${t('nav_drinks')}</button>
@@ -466,7 +469,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
 
     <h3 style="margin-top:14px;margin-bottom:4px">🧊 ${t('ice_level')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[{k:'none',v:0},{k:'regular',v:0.3},{k:'extra',v:0.5}].map(o=>`<button class="${curIce===o.v?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${curSweetness},${o.v},${curCup||'null'})">${t('ice_'+o.k)}</button>`).join('')}
+      ${[{k:'none',v:0},{k:'fill',v:-1},{k:'regular',v:0.3},{k:'extra',v:0.5}].map(o=>`<button class="${curIce===o.v?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${curSweetness},${o.v},${curCup||'null'})">${t('ice_'+o.k)}</button>`).join('')}
     </div>
     ${r.ingredients.some(i=>i.sweetener)?`
     <h3 style="margin-top:14px;margin-bottom:4px">🍬 ${t('sweetness')}</h3>
@@ -476,7 +479,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
     <div class="result-box" style="margin-top:10px">
       <div class="note">${t('total_volume')} · ${t('cost_est')}</div>
       <div class="v">${fmtG(totalVol)} ml · ${cost.toFixed(1)} ฿</div>
-      <div class="note">${t('serve_size_label')}: ${r.serves?Math.round(r.serves*curScale):curScale} ${t('serve_size_unit')}${curIce>0?' · Liquid: '+Math.round(liquidVol)+' ml'+(hasIce?' · Ice: '+Math.round(totalVol-liquidVol)+' ml':'')+(' · Ice cubes: ~'+Math.round(curIce*totalVol/15)).replace('NaN','0'):''}</div>
+      <div class="note">${t('serve_size_label')}: ${r.serves?Math.round(r.serves*curScale):curScale} ${t('serve_size_unit')}${realIce>0?' · Liquid: '+Math.round(liquidVol)+' ml'+(hasIce?' · Ice: '+Math.round(iceVol)+' ml':'')+(' · Ice cubes: ~'+Math.round(iceVol/15)):''}${fillMode?' · 🧊 เติมเต็มแก้ว':''}</div>
     </div>
   </div>
   <div class="card">
@@ -648,7 +651,7 @@ async function vBrew(){
   if(!r){session=null;await kvSet('session',null);return vBrew();}
   const s=r.steps[session.step], last=session.step>=r.steps.length-1;
   $('#view').innerHTML=`
-  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}${session.ice?` · 🧊 ${t('ice_'+(['none','regular','extra'][session.ice===0?0:session.ice===0.3?1:2]))}`:''}${session.sweetness&&session.sweetness!==1?` · 🍬 ${session.sweetness*100}%`:''}</div>
+  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}${session.ice>0?` · 🧊 ${session.ice===0.3?'Regular':session.ice===0.5?'Extra':'Ice'}`:''}${session.ice<0?` · 🧊 เติมเต็มแก้ว`:''}${session.sweetness&&session.sweetness!==1?` · 🍬 ${session.sweetness*100}%`:''}</div>
   <h1 style="font-size:22px;margin:2px 0 4px">${t('step')} ${session.step+1} ${t('of')} ${r.steps.length}: ${esc(tn(s.t))}</h1>
   <div class="progressbar"><i style="width:${(session.step)/r.steps.length*100}%"></i></div>
   <div class="card">
@@ -681,7 +684,7 @@ function stepIngHint(r,s){
   });
   if(!hits.length)return '';
   return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)" class="note">
-    ${hits.map(i=>`<b>${esc(tn(i.name))}</b> ${fmtG(i.amount*session.scale*(isIce(i)?1:(1-session.ice))*(i.sweetener?session.sweetness:1))} ${i.unit||'ml'}`).join(' · ')}</div>`;
+    ${hits.map(i=>`<b>${esc(tn(i.name))}</b> ${fmtG(i.amount*session.scale*(isIce(i)?(session.ice<0?1:(session.ice||0)):(session.ice<0?1:(1-(session.ice||0))))*(i.sweetener?session.sweetness:1))} ${i.unit||'ml'}`).join(' · ')}</div>`;
 }
 function startTick(){stopTick(); tick(); tickInt=setInterval(tick,500);}
 function stopTick(){if(tickInt){clearInterval(tickInt);tickInt=null;}}
