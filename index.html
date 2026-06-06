@@ -151,6 +151,8 @@ pre.code{background:var(--surface2); border:1px solid var(--line); border-radius
 <script>
 /* ============ i18n ============ */
 const I18N = {
+  cup_size:["Cup Size","ขนาดแก้ว"], cup_S:["S (12oz)","S (12oz)"], cup_M:["M (16oz)","M (16oz)"], cup_L:["L (22oz)","L (22oz)"], cup_custom:["Custom","กำหนดเอง"],
+  ice_level:["Ice","น้ำแข็ง"], ice_none:["No Ice","ไม่ใส่น้ำแข็ง"], ice_regular:["Regular","ปกติ"], ice_extra:["Extra","เต็มแก้ว"],
   sweetness_0:["0%","0%"], sweetness_25:["25%","25%"], sweetness_50:["50%","50%"], sweetness_75:["75%","75%"], sweetness_100:["100%","100%"],
   nav_drinks:["Drinks","เครื่องดื่ม"], nav_brew:["Brew","เริ่มชง"], nav_tools:["Tools","เครื่องมือ"],
   nav_stock:["Stock","สต็อก"], nav_log:["Log","บันทึก"],
@@ -362,7 +364,8 @@ function toast(msg){const r=$('#toastRoot');r.innerHTML=`<div class="toast">${es
 function modal(html){$('#modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="handle"></div>${html}</div></div>`;}
 function closeModal(){$('#modalRoot').innerHTML='';}
 const fmtG=g=>Math.round(g*10)/10;
-const catName=c=>t('cat_'+c);
+const mlPerUnit=i=>i.unit==="shot"?30:i.unit==="ml"?1:i.unit==="tsp"?5:i.unit==="tbsp"?15:i.unit==="cup"?240:i.unit==="oz"?30:0;
+const catName=c=>t("cat_"+c);
 const CATS=['hotcoffee','coldcoffee','tea','smoothie','soda','special'];
 const ICONS={hotcoffee:'☕',coldcoffee:'🧊',tea:'🍵',smoothie:'🥤',soda:'🫧',special:'✨'};
 
@@ -425,11 +428,23 @@ async function vDrinks(){
   </div>`;
 }
 
-let curScale=1, curSweetness=1;
-async function vDrinkDetail(id,scale,sweetness){
+let curScale=1, curSweetness=1, curIce=0.3;
+const CUP_PRESETS={S:1, M:1.3, L:1.8};
+let curCup=null;
+async function vDrinkDetail(id,scale,sweetness,ice,cup){
   const r=await dbGet("drinks",id); if(!r)return go("drinks");
-  curScale=scale||1; curSweetness=sweetness!==undefined?sweetness:curSweetness;
-  const cost=r.ingredients.reduce((a,i)=>a+(i.cost||0)*curScale*(i.sweetener?curSweetness:1),0), vol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*(i.unit==="shot"?30:i.unit==="ml"?1:i.unit==="tsp"?5:i.unit==="tbsp"?15:i.unit==="cup"?240:0)*curScale*(i.sweetener?curSweetness:1),0);
+  curScale=scale!==undefined?scale:curScale; curSweetness=sweetness!==undefined?sweetness:curSweetness;
+  curIce=ice!==undefined?ice:curIce; curCup=cup!==undefined?cup:curCup;
+  const isIce=i=>(tn(i.name)||"").toLowerCase().includes("ice")||(tn(i.name)||"").toLowerCase().includes("น้ำแข็ง");
+  const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(i.sweetener?curSweetness:1),0);
+  const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(isIce(i)?0:1)*(i.sweetener?curSweetness:1),0);
+  const totalVol=fullVol;
+  const iceVol=totalVol*curIce;
+  const liquidVol=totalVol-iceVol;
+  const liquidScale=nonIceVol>0?liquidVol/nonIceVol:1;
+  const adjAmt=i=>{let a=i.amount*curScale*(isIce(i)?(iceVol/mlPerUnit(i)/curScale):liquidScale)*(i.sweetener?curSweetness:1); return a;};
+  const cost=r.ingredients.reduce((a,i)=>a+(i.cost||0)*curScale*(isIce(i)?(iceVol/(i.amount*mlPerUnit(i)*curScale||1)):liquidScale)*(i.sweetener?curSweetness:1),0);
+  const hasIce=r.ingredients.some(i=>isIce(i));
   $('#view').innerHTML=`
   <button class="iconbtn" onclick="go('drinks')" style="margin-bottom:12px">‹ ${t('nav_drinks')}</button>
   <div class="row"><div style="font-size:42px">${r.icon||ICONS[r.cat]||'🥤'}</div>
@@ -437,23 +452,39 @@ async function vDrinkDetail(id,scale,sweetness){
     <div class="note">${esc(r.source||'')}</div></div></div>
   ${r.notes?`<div class="card flat" style="margin-top:12px;background:var(--surface2);border-style:dashed">💡 ${esc(tn(r.notes))}</div>`:''}
   <div class="card" style="margin-top:12px">
-    <h3 style="margin-bottom:4px">${t('scale')}</h3>
+    <h3 style="margin-bottom:4px">🥤 ${t('cup_size')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[0.5,1,2,4,10].map(m=>`<button class="${curScale===m?'on':''}" onclick="vDrinkDetail('${id}',${m},${curSweetness})">×${m}</button>`).join('')}
+      ${[{k:'S',v:1},{k:'M',v:1.3},{k:'L',v:1.8}].map(c=>`<button class="${!curCup&&curScale===c.v?'on':curCup===c.k?'on':''}" onclick="vDrinkDetail('${id}',${c.v},${curSweetness},${curIce},'${c.k}')">${t('cup_'+c.k)}</button>`).join('')}
     </div>
-    <div class="note" style="margin-top:8px">${t('serve_size_label')}: <b>${r.serves?Math.round(r.serves*curScale):curScale} ${t('serve_size_unit')}</b> · ${t('total_volume')}: <b>${fmtG(vol)} ml</b></div>
-    ${r.ingredients.some(i=>i.sweetener)?`
-    <h3 style="margin-top:12px;margin-bottom:4px">🍬 ${t('sweetness')}</h3>
+    <div class="row" style="margin-top:8px">
+      <span class="chip ${!curCup&&![1,1.3,1.8].includes(curScale)?'on':''}" onclick="vDrinkDetail('${id}',curScale,${curSweetness},${curIce},null)" style="cursor:pointer">${t('cup_custom')}</span>
+      <span class="note grow" style="text-align:right">× ${fmtG(curScale)}</span>
+    </div>
+    <div class="row" style="margin-top:12px">
+      ${[0.25,0.5,1,2,4].map(m=>`<button class="btn ghost" style="padding:4px 10px;font-size:13px;min-width:42px;height:32px" onclick="vDrinkDetail('${id}',${m},${curSweetness},${curIce},null)">×${m}</button>`).join('')}
+    </div>
+
+    <h3 style="margin-top:14px;margin-bottom:4px">🧊 ${t('ice_level')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m})">${t('sweetness_'+(m*100))}</button>`).join('')}
+      ${[{k:'none',v:0},{k:'regular',v:0.3},{k:'extra',v:0.5}].map(o=>`<button class="${curIce===o.v?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${curSweetness},${o.v},${curCup||'null'})">${t('ice_'+o.k)}</button>`).join('')}
+    </div>
+    ${r.ingredients.some(i=>i.sweetener)?`
+    <h3 style="margin-top:14px;margin-bottom:4px">🍬 ${t('sweetness')}</h3>
+    <div class="seg" style="margin:10px 0">
+      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m},${curIce},${curCup||'null'})">${t('sweetness_'+(m*100))}</button>`).join('')}
     </div>`:''}
+    <div class="result-box" style="margin-top:10px">
+      <div class="note">${t('total_volume')} · ${t('cost_est')}</div>
+      <div class="v">${fmtG(totalVol)} ml · ${cost.toFixed(1)} ฿</div>
+      <div class="note">${t('serve_size_label')}: ${r.serves?Math.round(r.serves*curScale):curScale} ${t('serve_size_unit')}${curIce>0?' · Liquid: '+Math.round(liquidVol)+' ml'+(hasIce?' · Ice: '+Math.round(totalVol-liquidVol)+' ml':'')+(' · Ice cubes: ~'+Math.round(curIce*totalVol/15)).replace('NaN','0'):''}</div>
+    </div>
   </div>
   <div class="card">
     <h3>${t('ingredients')} <span class="note">(${t('cost_est')}: ${cost.toFixed(1)} ฿)</span></h3>
     <table class="ing">${r.ingredients.map(i=>`<tr>
       <td>${esc(tn(i.name))}</td>
-      <td>${fmtG(i.amount*curScale*(i.sweetener?curSweetness:1))} ${i.unit||'ml'}</td>
-      <td>${((i.cost||0)*curScale*(i.sweetener?curSweetness:1)).toFixed(1)} ฿</td></tr>`).join('')}</table>
+      <td>${fmtG(adjAmt(i))} ${i.unit||'ml'}</td>
+      <td>${((i.cost||0)*curScale*(i.sweetener?curSweetness:1)*(isIce(i)?1:(1-curIce))).toFixed(1)} ฿</td></tr>`).join('')}</table>
   </div>
   <div class="card">
     <h3>${t('steps')}</h3>
@@ -461,7 +492,7 @@ async function vDrinkDetail(id,scale,sweetness){
       <div class="grow"><b>${esc(tn(s.t))}</b><div class="note">${esc(tn(s.d))}</div></div>
       ${s.m?`<span class="tmr">⏱ ${s.m>=60?(Math.round(s.m/6)/10)+' '+t('hr_short'):s.m+' '+t('min_short')}</span>`:''}</div>`).join('')}
   </div>
-  <button class="btn big" onclick="startBrew('${id}',curScale,curSweetness)">▶ ${t('start_brew')}</button>
+  <button class="btn big" onclick="startBrew('${id}',curScale,curSweetness,curIce)">▶ ${t('start_brew')}</button>
   <div class="row" style="margin-top:12px">
     <button class="btn ghost grow" onclick="drinkEditor('${id}')">✎ ${t('edit')}</button>
     <button class="btn ghost grow" onclick="dupDrink('${id}')">⧉ ${t('duplicate')}</button>
@@ -595,9 +626,9 @@ async function aiDoImport(){
 }
 
 /* ============ Guided Brew session ============ */
-async function startBrew(id,scale,sweetness){
+async function startBrew(id,scale,sweetness,ice){
   const r=await dbGet('drinks',id);
-  session={drinkId:id,drinkName:tn(r.name),scale:scale||1,sweetness:sweetness!==undefined?sweetness:1,step:0,startedAt:Date.now(),
+  session={drinkId:id,drinkName:tn(r.name),scale:scale||1,sweetness:sweetness!==undefined?sweetness:1,ice:ice!==undefined?ice:0.3,step:0,startedAt:Date.now(),
            stepStartedAt:Date.now(),endsAt:null,paused:false,pausedRemain:0,acknowledged:false};
   const m=r.steps[0]?.m||0;
   session.endsAt=m?Date.now()+m*60000:null;
@@ -617,7 +648,7 @@ async function vBrew(){
   if(!r){session=null;await kvSet('session',null);return vBrew();}
   const s=r.steps[session.step], last=session.step>=r.steps.length-1;
   $('#view').innerHTML=`
-  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}${session.sweetness&&session.sweetness!==1?` · 🍬 ${session.sweetness*100}%`:''}</div>
+  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}${session.ice?` · 🧊 ${t('ice_'+(['none','regular','extra'][session.ice===0?0:session.ice===0.3?1:2]))}`:''}${session.sweetness&&session.sweetness!==1?` · 🍬 ${session.sweetness*100}%`:''}</div>
   <h1 style="font-size:22px;margin:2px 0 4px">${t('step')} ${session.step+1} ${t('of')} ${r.steps.length}: ${esc(tn(s.t))}</h1>
   <div class="progressbar"><i style="width:${(session.step)/r.steps.length*100}%"></i></div>
   <div class="card">
@@ -650,7 +681,7 @@ function stepIngHint(r,s){
   });
   if(!hits.length)return '';
   return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)" class="note">
-    ${hits.map(i=>`<b>${esc(tn(i.name))}</b> ${fmtG(i.amount*session.scale*(i.sweetener?session.sweetness:1))} ${i.unit||'ml'}`).join(' · ')}</div>`;
+    ${hits.map(i=>`<b>${esc(tn(i.name))}</b> ${fmtG(i.amount*session.scale*(isIce(i)?1:(1-session.ice))*(i.sweetener?session.sweetness:1))} ${i.unit||'ml'}`).join(' · ')}</div>`;
 }
 function startTick(){stopTick(); tick(); tickInt=setInterval(tick,500);}
 function stopTick(){if(tickInt){clearInterval(tickInt);tickInt=null;}}
