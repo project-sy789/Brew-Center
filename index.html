@@ -357,7 +357,7 @@ const SEEDS = [
 
 /* ============ App state & helpers ============ */
 let TAB='drinks', drinks=[], session=null, tickInt=null, wakeLock=null;
-let drinkFilter='all', drinkSearch='';
+let drinkFilter='all', drinkSearch='', favs=[];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
 function toast(msg){const r=$('#toastRoot');r.innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>r.innerHTML='',2200);}
@@ -401,12 +401,22 @@ async function toggleTheme(){
 async function toggleLang(){LANG=LANG==='en'?'th':'en';await kvSet('lang',LANG);render();}
 
 /* ============ Drinks tab ============ */
+async function loadFavs(){ favs=(await kvGet('favs'))||[]; }
+async function toggleFav(id){ 
+  if(favs.includes(id)) favs=favs.filter(x=>x!==id); else favs.push(id);
+  await kvSet('favs',favs); vDrinks();
+}
 async function vDrinks(){
-  drinks=await dbAll('drinks');
-  const list=drinks
-    .filter(r=>drinkFilter==='all'||r.cat===drinkFilter)
-    .filter(r=>!drinkSearch||tn(r.name).toLowerCase().includes(drinkSearch.toLowerCase()))
-    .sort((a,b)=>tn(a.name).localeCompare(tn(b.name)));
+  drinks=await dbAll('drinks'); await loadFavs();
+  let list=drinks
+    .filter(r=>drinkFilter==='favs'?favs.includes(r.id):(drinkFilter==='all'||r.cat===drinkFilter))
+    .filter(r=>!drinkSearch||tn(r.name).toLowerCase().includes(drinkSearch.toLowerCase()));
+  // Sort: favorites first, then alphabetical
+  list.sort((a,b)=>{
+    const aFav=favs.includes(a.id)?0:1, bFav=favs.includes(b.id)?0:1;
+    if(aFav!==bFav)return aFav-bFav;
+    return tn(a.name).localeCompare(tn(b.name));
+  });
   $('#view').innerHTML=`
   <h1>${t('drinks_title')}</h1><div class="tagline">${t('drinks_sub')}</div>
   <div class="row" style="margin-bottom:12px">
@@ -414,11 +424,12 @@ async function vDrinks(){
   </div>
   <div class="pillrow">
     <span class="chip ${drinkFilter==='all'?'on':''}" onclick="drinkFilter='all';vDrinks()">${t('cat_all')}</span>
+    <span class="chip ${drinkFilter==='favs'?'on':''}" onclick="drinkFilter='favs';vDrinks()" style="color:var(--gold)">⭐ Favorites</span>
     ${CATS.map(c=>`<span class="chip ${drinkFilter===c?'on':''}" onclick="drinkFilter='${c}';vDrinks()">${catName(c)}</span>`).join('')}
   </div>
   ${list.map(r=>`<div class="card recipe-card" onclick="vDrinkDetail('${r.id}')">
      <div class="ico">${r.icon||ICONS[r.cat]||'🥤'}</div>
-     <div class="grow"><h3>${esc(tn(r.name))}</h3>
+     <div class="grow"><h3>${esc(tn(r.name))}${favs.includes(r.id)?' ⭐':''}</h3>
        <div class="meta">${catName(r.cat)} · ${r.steps.length} ${t('steps').toLowerCase()}${r.serves?` · ${r.serves} ${t('serve_size_unit')}`:''}</div>
      </div><div style="color:var(--muted)">›</div></div>`).join('')
    || `<div class="empty"><div class="big">🥤</div>${LANG==='en'?'No drinks found':'ไม่พบเครื่องดื่ม'}</div>`}
@@ -434,8 +445,15 @@ const CUP_VOL_ML={S:355, M:473, L:650}; // physical cup volumes for Fill mode
 let curCup=null;
 async function vDrinkDetail(id,scale,sweetness,ice,cup){
   const r=await dbGet("drinks",id); if(!r)return go("drinks");
-  curScale=scale!==undefined?scale:curScale; curSweetness=sweetness!==undefined?sweetness:curSweetness;
-  curIce=ice!==undefined?ice:curIce; curCup=cup!==undefined?cup:curCup;
+  // Load saved defaults if first open (no explicit params)
+  if(scale===undefined&&sweetness===undefined&&ice===undefined&&cup===undefined){
+    const defs=await kvGet('last-'+id);
+    if(defs){ curScale=defs.scale||1; curSweetness=defs.sweetness!=null?defs.sweetness:1; curIce=defs.ice!=null?defs.ice:0.3; curCup=defs.cup||null; }
+    else { curScale=1; curSweetness=1; curIce=0.3; curCup=null; }
+  } else {
+    curScale=scale!==undefined?scale:curScale; curSweetness=sweetness!==undefined?sweetness:curSweetness;
+    curIce=ice!==undefined?ice:curIce; curCup=cup!==undefined?cup:curCup;
+  }
   const isIce=i=>(tn(i.name)||"").toLowerCase().includes("ice")||(tn(i.name)||"").toLowerCase().includes("น้ำแข็ง");
   const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(i.sweetener?curSweetness:1),0);
   const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(isIce(i)?0:1)*(i.sweetener?curSweetness:1),0);
@@ -499,6 +517,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
   </div>
   <button class="btn big" onclick="startBrew('${id}',curScale,curSweetness,curIce)">▶ ${t('start_brew')}</button>
   <div class="row" style="margin-top:12px">
+    <button class="btn ghost grow" style="${favs.includes(id)?'color:var(--gold)':''}" onclick="toggleFav('${id}');vDrinkDetail('${id}',curScale,curSweetness,curIce)">${favs.includes(id)?'★':'☆'} Fav</button>
     <button class="btn ghost grow" onclick="drinkEditor('${id}')">✎ ${t('edit')}</button>
     <button class="btn ghost grow" onclick="dupDrink('${id}')">⧉ ${t('duplicate')}</button>
     ${r.seed?'':`<button class="btn ghost grow" style="color:var(--accent)" onclick="delDrink('${id}')">🗑 ${t('delete')}</button>`}
@@ -633,7 +652,7 @@ async function aiDoImport(){
 /* ============ Guided Brew session ============ */
 async function startBrew(id,scale,sweetness,ice){
   const r=await dbGet('drinks',id);
-  session={drinkId:id,drinkName:tn(r.name),scale:scale||1,sweetness:sweetness!==undefined?sweetness:1,ice:ice!==undefined?ice:0.3,step:0,startedAt:Date.now(),
+  kvSet('last-'+id,{scale:curScale,cup:curCup,sweetness:curSweetness,ice:curIce}); session={drinkId:id,drinkName:tn(r.name),scale:scale||1,sweetness:sweetness!==undefined?sweetness:1,ice:ice!==undefined?ice:0.3,step:0,startedAt:Date.now(),
            stepStartedAt:Date.now(),endsAt:null,paused:false,pausedRemain:0,acknowledged:false};
   const m=r.steps[0]?.m||0;
   session.endsAt=m?Date.now()+m*60000:null;
@@ -1044,7 +1063,7 @@ async function openSettings(){
   <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
   <button class="btn ghost big" style="margin-top:10px" onclick="$('#impFile').click()">⬆ ${t('import_data')}</button>
   <div class="note" style="margin-top:14px"><b>${t('last_backup')}:</b> ${lb||t('never_backup')}<br>${t('auto_backup_note')}</div>
-  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.4 · Made with ☕ for baristas</div>
+  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.5 · Made with ☕ for baristas</div>
   <button class="btn ghost big" style="margin-top:10px" onclick="closeModal()">${t('close')}</button>`);
 }
 async function gatherBackup(){
@@ -1110,6 +1129,10 @@ const GUIDE=[
  {icon:'🌐',t:{en:'Language, Theme & Install',th:'ภาษา ธีม และติดตั้ง'},d:{en:'Switch EN/TH and light/dark mode anytime. Add to home screen for full-screen offline use like a real app.',th:'สลับภาษาและโหมดสว่าง/มืดได้ทุกเมื่อ เพิ่มลงหน้าจอโฮมเพื่อใช้เต็มจอแบบออฟไลน์เหมือนแอปจริง'}},
 ];
 const CHANGELOG=[
+ {v:'1.5',d:'2026-06-08',c:[
+   {en:'💾 Remember last settings — cup size, ice level, and sweetness are saved per drink. Open a drink and your preferences are already set!',th:'💾 จำค่าล่าสุด — ขนาดแก้ว ระดับน้ำแข็ง และความหวาน ถูกบันทึกต่อเครื่องดื่ม เปิดเมนูครั้งต่อไปค่าที่เคยตั้งไว้ก็พร้อมใช้เลย!'},
+   {en:'⭐ Favorites — star your go-to drinks. Filter by favorites and see them at the top of the menu.',th:'⭐ รายการโปรด — กดดาวให้เมนูที่ชอบ กรองดูเฉพาะรายการโปรดและแสดงไว้ด้านบนสุดของเมนู'}]},
+ {v:'1.4',d:'2026-06-08',c:[
  {v:'1.4',d:'2026-06-08',c:[
    {en:'📊 Brew Analytics Dashboard — see total brews, weekly count, average rating, and top drinks at a glance on the Log page.',th:'📊 แดชบอร์ดวิเคราะห์การชง — ดูจำนวนการชงทั้งหมด, สัปดาห์นี้, คะแนนเฉลี่ย, และเมนูยอดนิยม ได้ในหน้า Log'}]},
  {v:'1.3',d:'2026-06-08',c:[
