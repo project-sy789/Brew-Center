@@ -955,7 +955,23 @@ async function delStock(id){if(!confirm(t('confirm_del')))return; await dbDel('s
 let logPhotos=[];
 async function vLog(){
   const logs=(await dbAll('logs')).sort((a,b)=>b.at-a.at);
+  const now=Date.now(), weekAgo=now-7*86400000;
+  const weekLogs=logs.filter(l=>l.at>weekAgo);
+  // Analytics
+  const drinkCount={}; logs.forEach(l=>{ if(l.drinkName){ drinkCount[l.drinkName]=(drinkCount[l.drinkName]||0)+1; } });
+  const top=Object.entries(drinkCount).sort((a,b)=>b[1]-a[1]);
+  const rated=logs.filter(l=>l.rating); const avgRating=rated.length?(rated.reduce((a,l)=>a+(l.rating||0),0)/rated.length):0;
   $('#view').innerHTML=`<h1>${t('log_title')}</h1><div class="tagline">${t('log_sub')}</div>
+  ${logs.length?`<div class="card" style="background:var(--surface2)">
+    <h3 style="margin-bottom:6px;font-size:15px">📊 ${LANG==='en'?'Brew Dashboard':'แดชบอร์ดการชง'}</h3>
+    <div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <div class="chip on" style="font-size:13px">☕ ${logs.length} ${LANG==='en'?'total':'ชงทั้งหมด'}</div>
+      <div class="chip" style="font-size:13px">📅 ${weekLogs.length} ${LANG==='en'?'this week':'สัปดาห์นี้'}</div>
+      ${avgRating?`<div class="chip" style="font-size:13px">⭐ ${avgRating.toFixed(1)} ${LANG==='en'?'avg':'เฉลี่ย'}</div>`:''}
+      ${top.length?`<div class="chip" style="font-size:13px">🏆 ${esc(top[0][0])} (${top[0][1]}x)</div>`:''}
+    </div>
+    ${top.length>1?`<div class="note">${LANG==='en'?'Top drinks':'เมนูยอดนิยม'}: ${top.slice(0,5).map(([n,c])=>esc(n)+' '+c+'x').join(' · ')}</div>`:''}
+  </div>`:''}
   <button class="btn big" onclick="logEditor()">＋ ${t('add_log')}</button>
   <div style="margin-top:14px">
   ${logs.map(l=>`<div class="card">
@@ -1028,7 +1044,7 @@ async function openSettings(){
   <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
   <button class="btn ghost big" style="margin-top:10px" onclick="$('#impFile').click()">⬆ ${t('import_data')}</button>
   <div class="note" style="margin-top:14px"><b>${t('last_backup')}:</b> ${lb||t('never_backup')}<br>${t('auto_backup_note')}</div>
-  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.3 · Made with ☕ for baristas</div>
+  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.4 · Made with ☕ for baristas</div>
   <button class="btn ghost big" style="margin-top:10px" onclick="closeModal()">${t('close')}</button>`);
 }
 async function gatherBackup(){
@@ -1094,6 +1110,9 @@ const GUIDE=[
  {icon:'🌐',t:{en:'Language, Theme & Install',th:'ภาษา ธีม และติดตั้ง'},d:{en:'Switch EN/TH and light/dark mode anytime. Add to home screen for full-screen offline use like a real app.',th:'สลับภาษาและโหมดสว่าง/มืดได้ทุกเมื่อ เพิ่มลงหน้าจอโฮมเพื่อใช้เต็มจอแบบออฟไลน์เหมือนแอปจริง'}},
 ];
 const CHANGELOG=[
+ {v:'1.4',d:'2026-06-08',c:[
+   {en:'📊 Brew Analytics Dashboard — see total brews, weekly count, average rating, and top drinks at a glance on the Log page.',th:'📊 แดชบอร์ดวิเคราะห์การชง — ดูจำนวนการชงทั้งหมด, สัปดาห์นี้, คะแนนเฉลี่ย, และเมนูยอดนิยม ได้ในหน้า Log'}]},
+ {v:'1.3',d:'2026-06-08',c:[
  {v:'1.3',d:'2026-06-08',c:[
    {en:'⏱ Timer now supports seconds — set step time as decimal minutes (0.5 = 30s). Display shows seconds for steps under 1 minute.',th:'⏱ จับเวลารองรับวินาทีแล้ว — ตั้งเวลาเป็นทศนิยมนาที (0.5 = 30 วิ) แสดงผลเป็นวินาทีสำหรับขั้นตอนที่น้อยกว่า 1 นาที'},
    {en:'📦 Auto stock deduction — finishing a brew automatically deducts ingredient amounts from your stock tracker. No more manual updating!',th:'📦 ตัดสต็อกอัตโนมัติ — ชงเสร็จแล้วระบบหักวัตถุดิบจากสต็อกให้อัตโนมัติ ไม่ต้องมาคอยอัปเดตเองแล้ว!'}]},
