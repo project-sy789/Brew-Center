@@ -151,6 +151,7 @@ pre.code{background:var(--surface2); border:1px solid var(--line); border-radius
 <script>
 /* ============ i18n ============ */
 const I18N = {
+  sweetness_0:["0%","0%"], sweetness_25:["25%","25%"], sweetness_50:["50%","50%"], sweetness_75:["75%","75%"], sweetness_100:["100%","100%"],
   nav_drinks:["Drinks","เครื่องดื่ม"], nav_brew:["Brew","เริ่มชง"], nav_tools:["Tools","เครื่องมือ"],
   nav_stock:["Stock","สต็อก"], nav_log:["Log","บันทึก"],
   drinks_title:["Drink Menu","เมนูเครื่องดื่ม"], drinks_sub:["Tap a drink to view, scale & brew","แตะเครื่องดื่มเพื่อดู ปรับขนาด และเริ่มชง"],
@@ -219,6 +220,7 @@ const I18N = {
   started:["Started","เริ่มเมื่อ"], scaled:["scaled","ปรับขนาด"],
   source:["Source (URL / book)","ที่มา (URL / หนังสือ)"], notes_opt:["Recipe notes (optional)","โน้ตของสูตร (ไม่บังคับ)"],
   serve_size_label:["Serves","สำหรับ"], serve_size_unit:["cup(s)","แก้ว"],
+  sweetness:["Sweetness","ระดับความหวาน"], sweetener_label:["sweetener","ให้ความหวาน"],
 };
 let LANG = 'en';
 const t = k => (I18N[k]||[k,k])[LANG==='en'?0:1];
@@ -253,7 +255,7 @@ const SEEDS = [
   {name:{en:'Espresso shots',th:'Espresso shot'},amount:2,unit:'shot',cost:8},
   {name:{en:'Fresh milk',th:'นมสด'},amount:200,unit:'ml',cost:6},
   {name:{en:'Ice cubes',th:'น้ำแข็ง'},amount:1,unit:'cup',cost:1},
-  {name:{en:'Sugar syrup (optional)',th:'น้ำเชื่อม (ไม่บังคับ)'},amount:15,unit:'ml',cost:0.5}],
+  {name:{en:"Sugar syrup (optional)",th:"น้ำเชื่อม (ไม่บังคับ)"},amount:15,unit:"ml",cost:0.5,sweetener:true}],
  steps:[
   {t:{en:'Chill the glass',th:'แช่แก้วให้เย็น'},d:{en:'Fill serving glass with ice water to chill while prepping.',th:'ใส่น้ำแข็ง+น้ำในแก้วเสิร์ฟเพื่อแช่แก้วไว้ก่อน'},m:0},
   {t:{en:'Pull espresso shots',th:'ดึง espresso shot'},d:{en:'Grind fresh, tamp evenly, extract 2 shots (~60ml).',th:'บดกาแฟสด กดให้เรียบ ดึง 2 shot (~60 มล.)'},m:2},
@@ -290,9 +292,9 @@ const SEEDS = [
  ingredients:[
   {name:{en:'Thai tea leaves',th:'ใบชาตรามือ'},amount:4,unit:'tbsp',cost:5},
   {name:{en:'Hot water',th:'น้ำร้อน'},amount:250,unit:'ml',cost:0},
-  {name:{en:'Condensed milk',th:'นมข้นหวาน'},amount:40,unit:'ml',cost:3},
+  {name:{en:"Condensed milk",th:"นมข้นหวาน"},amount:40,unit:"ml",cost:3,sweetener:true},
   {name:{en:'Evaporated milk (topping)',th:'นมข้นจืด (ราดหน้า)'},amount:30,unit:'ml',cost:2.5},
-  {name:{en:'Sugar',th:'น้ำตาลทราย'},amount:2,unit:'tbsp',cost:0.5},
+  {name:{en:"Sugar",th:"น้ำตาลทราย"},amount:2,unit:"tbsp",cost:0.5,sweetener:true},
   {name:{en:'Ice (crushed)',th:'น้ำแข็งเกล็ด'},amount:2,unit:'cup',cost:2}],
  steps:[
   {t:{en:'Brew tea',th:'ชงชา'},d:{en:'Steep Thai tea leaves in hot water for 5-7 min. Strain through a cloth filter for smooth tea.',th:'แช่ใบชาในน้ำร้อน 5-7 นาที กรองด้วยผ้าขาวบางให้ได้น้ำชาเนียน'},m:7},
@@ -306,7 +308,7 @@ const SEEDS = [
   {name:{en:'Ripe mango (fresh or frozen)',th:'มะม่วงสุก (สดหรือแช่แข็ง)'},amount:200,unit:'ml',cost:10},
   {name:{en:'Yogurt (plain)',th:'โยเกิร์ตรสธรรมชาติ'},amount:100,unit:'ml',cost:5},
   {name:{en:'Milk',th:'นมจืด'},amount:80,unit:'ml',cost:2.5},
-  {name:{en:'Honey',th:'น้ำผึ้ง'},amount:1,unit:'tbsp',cost:1},
+  {name:{en:"Honey",th:"น้ำผึ้ง"},amount:1,unit:"tbsp",cost:1,sweetener:true},
   {name:{en:'Ice cubes',th:'น้ำแข็ง'},amount:0.5,unit:'cup',cost:0.5}],
  steps:[
   {t:{en:'Prep mango',th:'เตรียมมะม่วง'},d:{en:'Peel and cube ripe mango. If fresh, freeze 1h for thicker texture.',th:'ปอกเปลือก หั่นเต๋า ถ้าใช้มะม่วงสด แช่ฟรีซ 1 ชม.ให้เนื้อข้น'},m:0},
@@ -316,7 +318,7 @@ const SEEDS = [
  name:{en:'Chocolate Frappe',th:'ช็อกโกแลตปั่น'}, source:'Blended chocolate frappe, ~400ml',
  notes:{en:'Use good-quality cocoa or chocolate sauce. Top with whipped cream for the full cafe experience.',th:'ใช้โกโก้หรือซอสช็อกโกแลตคุณภาพดี ท็อปด้วยวิปครีมเพื่อประสบการณ์คาเฟ่เต็มรูปแบบ'},
  ingredients:[
-  {name:{en:'Chocolate sauce',th:'ซอสช็อกโกแลต'},amount:40,unit:'ml',cost:4},
+  {name:{en:"Chocolate sauce",th:"ซอสช็อกโกแลต"},amount:40,unit:"ml",cost:4,sweetener:true},
   {name:{en:'Cocoa powder',th:'ผงโกโก้'},amount:1,unit:'tbsp',cost:1},
   {name:{en:'Milk',th:'นมจืด'},amount:180,unit:'ml',cost:5},
   {name:{en:'Sugar syrup',th:'น้ำเชื่อม'},amount:20,unit:'ml',cost:0.5},
@@ -423,11 +425,11 @@ async function vDrinks(){
   </div>`;
 }
 
-let curScale=1;
-async function vDrinkDetail(id,scale){
-  const r=await dbGet('drinks',id); if(!r)return go('drinks');
-  curScale=scale||1;
-  const cost=totalCost(r)*curScale, vol=totalVolume(r)*curScale;
+let curScale=1, curSweetness=1;
+async function vDrinkDetail(id,scale,sweetness){
+  const r=await dbGet("drinks",id); if(!r)return go("drinks");
+  curScale=scale||1; curSweetness=sweetness!==undefined?sweetness:curSweetness;
+  const cost=r.ingredients.reduce((a,i)=>a+(i.cost||0)*curScale*(i.sweetener?curSweetness:1),0), vol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*(i.unit==="shot"?30:i.unit==="ml"?1:i.unit==="tsp"?5:i.unit==="tbsp"?15:i.unit==="cup"?240:0)*curScale*(i.sweetener?curSweetness:1),0);
   $('#view').innerHTML=`
   <button class="iconbtn" onclick="go('drinks')" style="margin-bottom:12px">‹ ${t('nav_drinks')}</button>
   <div class="row"><div style="font-size:42px">${r.icon||ICONS[r.cat]||'🥤'}</div>
@@ -437,16 +439,21 @@ async function vDrinkDetail(id,scale){
   <div class="card" style="margin-top:12px">
     <h3 style="margin-bottom:4px">${t('scale')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[0.5,1,2,4,10].map(m=>`<button class="${curScale===m?'on':''}" onclick="vDrinkDetail('${id}',${m})">×${m}</button>`).join('')}
+      ${[0.5,1,2,4,10].map(m=>`<button class="${curScale===m?'on':''}" onclick="vDrinkDetail('${id}',${m},${curSweetness})">×${m}</button>`).join('')}
     </div>
     <div class="note" style="margin-top:8px">${t('serve_size_label')}: <b>${r.serves?Math.round(r.serves*curScale):curScale} ${t('serve_size_unit')}</b> · ${t('total_volume')}: <b>${fmtG(vol)} ml</b></div>
+    ${r.ingredients.some(i=>i.sweetener)?`
+    <h3 style="margin-top:12px;margin-bottom:4px">🍬 ${t('sweetness')}</h3>
+    <div class="seg" style="margin:10px 0">
+      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m})">${t('sweetness_'+(m*100))}</button>`).join('')}
+    </div>`:''}
   </div>
   <div class="card">
     <h3>${t('ingredients')} <span class="note">(${t('cost_est')}: ${cost.toFixed(1)} ฿)</span></h3>
     <table class="ing">${r.ingredients.map(i=>`<tr>
       <td>${esc(tn(i.name))}</td>
-      <td>${fmtG(i.amount*curScale)} ${i.unit||'ml'}</td>
-      <td>${((i.cost||0)*curScale).toFixed(1)} ฿</td></tr>`).join('')}</table>
+      <td>${fmtG(i.amount*curScale*(i.sweetener?curSweetness:1))} ${i.unit||'ml'}</td>
+      <td>${((i.cost||0)*curScale*(i.sweetener?curSweetness:1)).toFixed(1)} ฿</td></tr>`).join('')}</table>
   </div>
   <div class="card">
     <h3>${t('steps')}</h3>
@@ -454,7 +461,7 @@ async function vDrinkDetail(id,scale){
       <div class="grow"><b>${esc(tn(s.t))}</b><div class="note">${esc(tn(s.d))}</div></div>
       ${s.m?`<span class="tmr">⏱ ${s.m>=60?(Math.round(s.m/6)/10)+' '+t('hr_short'):s.m+' '+t('min_short')}</span>`:''}</div>`).join('')}
   </div>
-  <button class="btn big" onclick="startBrew('${id}',curScale)">▶ ${t('start_brew')}</button>
+  <button class="btn big" onclick="startBrew('${id}',curScale,curSweetness)">▶ ${t('start_brew')}</button>
   <div class="row" style="margin-top:12px">
     <button class="btn ghost grow" onclick="drinkEditor('${id}')">✎ ${t('edit')}</button>
     <button class="btn ghost grow" onclick="dupDrink('${id}')">⧉ ${t('duplicate')}</button>
@@ -503,6 +510,8 @@ function edRender(){
     <select style="width:72px" onchange="ed.ingredients[${x}].unit=this.value">
       ${['ml','shot','tbsp','tsp','cup','oz','slice','g'].map(u=>`<option value="${u}" ${i.unit===u?'selected':''}>${u}</option>`).join('')}</select>
     <input type="number" inputmode="decimal" style="width:64px" placeholder="฿" value="${i.cost||''}" onchange="ed.ingredients[${x}].cost=+this.value||0">
+    <label style="font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px">🍬
+      <input type="checkbox" style="width:20px;height:20px" ${i.sweetener?'checked':''} onchange="ed.ingredients[${x}].sweetener=this.checked"></label>
     <button class="del-x" onclick="ed.ingredients.splice(${x},1);edSync();edRender()">✕</button></div>`).join('')}</div>
   <button class="btn ghost" onclick="edSync();ed.ingredients.push({name:'',amount:0,unit:'ml',cost:0});edRender()">${t('add_ing')}</button>
   <label class="f">${t('steps')}</label>
@@ -541,7 +550,7 @@ const AI_SCHEMA=`{
   "serves": 1,
   "source": "original source / URL",
   "notes": "key tips in one or two sentences",
-  "ingredients": [ {"name": "Espresso shot", "amount": 2, "unit": "shot", "cost": 8}, {"name": "Milk", "amount": 200, "unit": "ml", "cost": 6} ],
+  "ingredients": [ {"name": "Espresso shot", "amount": 2, "unit": "shot", "cost": 8}, {"name": "Sugar syrup", "amount": 15, "unit": "ml", "cost": 0.5, "sweetener": true}, {"name": "Milk", "amount": 200, "unit": "ml", "cost": 6} ],
   "steps": [ {"t": "Step title", "d": "What to do", "m": 0} ]
 }`;
 function aiPrompt(){return `You are a drink-recipe structuring assistant for a cafe app. Convert the drink recipe into EXACTLY this JSON format and output ONLY the JSON (no markdown, no explanation):
@@ -552,6 +561,7 @@ Rules:
 - ALL liquid amounts in ml (convert: 1 cup = 240 ml, 1 oz = 30 ml, 1 shot espresso = 30 ml, 1 tbsp = 15 ml, 1 tsp = 5 ml).
 - "m" = timer minutes for that step (0 if no waiting).
 - "cost" = estimated ingredient cost in Thai Baht (฿) per the amount listed. Be reasonable for a Thai cafe.
+- Mark sugar, syrup, honey, condensed milk, chocolate sauce as "sweetener": true. Other ingredients omit this field.
 - If the recipe mentions ice, include it as an ingredient with unit "cup".
 - Keep step titles short; put details in "d".
 - Respond in ${LANG==='th'?'Thai (keep coffee terms like espresso, shot, latte art in English)':'English'}.
@@ -577,7 +587,7 @@ async function aiDoImport(){
     const r={id:uid(),seed:false,icon:j.icon||'🥤',cat:CATS.includes(j.cat)?j.cat:'coldcoffee',
       type:j.type==='hot'?'hot':'cold',name:String(j.name||'Imported drink'),serves:j.serves||1,
       source:String(j.source||''),notes:String(j.notes||''),
-      ingredients:(j.ingredients||[]).map(i=>({name:String(i.name||''),amount:+i.amount||0,unit:String(i.unit||'ml'),cost:+i.cost||0})),
+      ingredients:(j.ingredients||[]).map(i=>({name:String(i.name||''),amount:+i.amount||0,unit:String(i.unit||'ml'),cost:+i.cost||0,sweetener:!!i.sweetener})),
       steps:(j.steps||[]).map(s=>({t:String(s.t||''),d:String(s.d||''),m:+s.m||0}))};
     if(!r.ingredients.length||!r.steps.length)throw 0;
     await dbPut('drinks',r); closeModal(); toast(t('data_saved')); vDrinkDetail(r.id);
@@ -585,9 +595,9 @@ async function aiDoImport(){
 }
 
 /* ============ Guided Brew session ============ */
-async function startBrew(id,scale){
+async function startBrew(id,scale,sweetness){
   const r=await dbGet('drinks',id);
-  session={drinkId:id,drinkName:tn(r.name),scale:scale||1,step:0,startedAt:Date.now(),
+  session={drinkId:id,drinkName:tn(r.name),scale:scale||1,sweetness:sweetness!==undefined?sweetness:1,step:0,startedAt:Date.now(),
            stepStartedAt:Date.now(),endsAt:null,paused:false,pausedRemain:0,acknowledged:false};
   const m=r.steps[0]?.m||0;
   session.endsAt=m?Date.now()+m*60000:null;
@@ -607,7 +617,7 @@ async function vBrew(){
   if(!r){session=null;await kvSet('session',null);return vBrew();}
   const s=r.steps[session.step], last=session.step>=r.steps.length-1;
   $('#view').innerHTML=`
-  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}</div>
+  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}${session.sweetness&&session.sweetness!==1?` · 🍬 ${session.sweetness*100}%`:''}</div>
   <h1 style="font-size:22px;margin:2px 0 4px">${t('step')} ${session.step+1} ${t('of')} ${r.steps.length}: ${esc(tn(s.t))}</h1>
   <div class="progressbar"><i style="width:${(session.step)/r.steps.length*100}%"></i></div>
   <div class="card">
@@ -640,7 +650,7 @@ function stepIngHint(r,s){
   });
   if(!hits.length)return '';
   return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)" class="note">
-    ${hits.map(i=>`<b>${esc(tn(i.name))}</b> ${fmtG(i.amount*session.scale)} ${i.unit||'ml'}`).join(' · ')}</div>`;
+    ${hits.map(i=>`<b>${esc(tn(i.name))}</b> ${fmtG(i.amount*session.scale*(i.sweetener?session.sweetness:1))} ${i.unit||'ml'}`).join(' · ')}</div>`;
 }
 function startTick(){stopTick(); tick(); tickInt=setInterval(tick,500);}
 function stopTick(){if(tickInt){clearInterval(tickInt);tickInt=null;}}
@@ -679,7 +689,7 @@ async function abortBrew(){
   session=null; await kvSet('session',null); stopTick(); releaseWake(); vBrew();
 }
 async function finishBrew(){
-  const fin={drinkId:session.drinkId,drinkName:session.drinkName,scale:session.scale,startedAt:session.startedAt};
+  const fin={drinkId:session.drinkId,drinkName:session.drinkName,scale:session.scale,sweetness:session.sweetness||1,startedAt:session.startedAt};
   session=null; await kvSet('session',null); stopTick(); releaseWake();
   logEditor(null,fin);
 }
@@ -883,7 +893,7 @@ async function vLog(){
   <div style="margin-top:14px">
   ${logs.map(l=>`<div class="card">
     <div class="row"><div class="grow"><h3 style="margin:0;font-size:17px">${esc(l.drinkName)}</h3>
-      <div class="note">${new Date(l.at).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}${l.scale&&l.scale!==1?' · ×'+l.scale:''}</div></div>
+      <div class="note">${new Date(l.at).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}${l.scale&&l.scale!==1?' · ×'+l.scale:''}${l.sweetness&&l.sweetness!==1?' · 🍬 '+(l.sweetness*100)+'%':''}</div></div>
       <div style="color:var(--gold);font-size:16px;white-space:nowrap">${'★'.repeat(l.rating||0)}<span style="opacity:.25">${'★'.repeat(5-(l.rating||0))}</span></div>
       <button class="del-x" onclick="delLog('${l.id}')">✕</button></div>
     ${l.notes?`<div style="margin-top:8px;font-size:15px">${esc(l.notes)}</div>`:''}
