@@ -1014,14 +1014,22 @@ const GUIDE=[
  {icon:'📚',t:{en:'Drink Menu',th:'เมนูเครื่องดื่ม'},d:{en:'Browse, search and filter drinks by category. Tap one to open. Scale servings with ×0.5–×10. Add drinks with ＋ or import with ✦ AI.',th:'ดู ค้นหา และกรองเครื่องดื่มตามหมวด แตะเพื่อเปิด ปรับจำนวนเสิร์ฟด้วย ×0.5–×10 เพิ่มเมนูด้วยปุ่ม ＋ หรือ Import ด้วย ✦ AI'}},
  {icon:'✦',t:{en:'Import with AI',th:'Import ด้วย AI'},d:{en:'Tap ✦ Import with AI, copy the prompt, and paste it into any AI chat with a drink recipe. Paste the JSON back — the drink is added with all amounts in ml.',th:'กด ✦ Import ด้วย AI แล้วคัดลอก prompt ไปวางในแชต AI พร้อมสูตรเครื่องดื่ม เอา JSON ที่ AI ตอบมาวาง เมนูจะถูกเพิ่มพร้อมหน่วยเป็น มล.'}},
  {icon:'☕',t:{en:'Brew Mode',th:'โหมดเริ่มชง'},d:{en:'Open a drink and tap ▶ Start Brewing. Step-by-step guidance with timers. Bell rings when time is up. Pause, +5 min or skip. Works even if screen sleeps — resume anytime.',th:'เปิดเมนูแล้วกด ▶ เริ่มชง นำทางทีละขั้นพร้อมจับเวลา เสียงเตือนเมื่อครบเวลา ใช้ปุ่มหยุดพัก +5 นาที หรือข้ามได้ ทำงานแม้จอดับ — กลับมาทำต่อได้ทุกเมื่อ'}},
+
+ {icon:'🍬',t:{en:'Sweetness Control',th:'ปรับระดับความหวาน'},d:{en:'Drinks with sweetener ingredients (sugar, syrup, honey, condensed milk) show a sweetness selector: 0%, 25%, 50%, 75%, 100%. Sweetener amounts scale automatically while other ingredients stay the same. Set your preferred sweetness before starting a brew — it's saved in the log.',th:'เมนูที่มีส่วนผสมให้ความหวาน (น้ำตาล, น้ำเชื่อม, น้ำผึ้ง, นมข้นหวาน) จะแสดงตัวเลือกความหวาน: 0%, 25%, 50%, 75%, 100% ปริมาณของหวานจะปรับตามอัตโนมัติโดยส่วนผสมอื่นไม่เปลี่ยน ตั้งระดับความหวานก่อนเริ่มชง — ระบบจะบันทึกไว้ใน log'}},
  {icon:'🧰',t:{en:'Tools',th:'เครื่องมือ'},d:{en:'Five barista tools: Cost & Margin Calculator, Serving Scaler, Brew Temperature Guide, Unit Converter, and Ice/Dilution Calculator.',th:'เครื่องมือ 5 ตัว: คำนวณต้นทุน & กำไร, ปรับขนาดเสิร์ฟ, คู่มืออุณหภูมิการชง, แปลงหน่วย, และคำนวณน้ำแข็ง'}},
+
  {icon:'📦',t:{en:'Stock Tracker',th:'ตัวติดตามสต็อก'},d:{en:'Track ingredient inventory with min alerts. Know when to reorder coffee beans, syrups, milk.',th:'ติดตามสต็อกวัตถุดิบพร้อมแจ้งเตือนเมื่อใกล้หมด รู้ว่าเมื่อไหร่ต้องสั่งกาแฟ ไซรัป นมเพิ่ม'}},
  {icon:'📓',t:{en:'Brew Log',th:'สมุดบันทึกการชง'},d:{en:'Record each brew with a 1–5 star rating, notes, and up to 3 photos. Log opens automatically after finishing a brew.',th:'บันทึกการชงแต่ละครั้งด้วยดาว 1–5 โน้ต และรูปสูงสุด 3 รูป หน้าบันทึกจะเปิดให้อัตโนมัติหลังชงเสร็จ'}},
  {icon:'💾',t:{en:'Backup & Data',th:'สำรองข้อมูล'},d:{en:'Data lives on your device only. Export backup file via ⚙, or Import to restore. Automatic daily backup too.',th:'ข้อมูลอยู่ในเครื่องนี้เท่านั้น กด ⚙ เพื่อ Export ไฟล์สำรอง หรือ Import เพื่อกู้คืน มี backup อัตโนมัติทุกวันด้วย'}},
  {icon:'🌐',t:{en:'Language, Theme & Install',th:'ภาษา ธีม และติดตั้ง'},d:{en:'Switch EN/TH and light/dark mode anytime. Add to home screen for full-screen offline use like a real app.',th:'สลับภาษาและโหมดสว่าง/มืดได้ทุกเมื่อ เพิ่มลงหน้าจอโฮมเพื่อใช้เต็มจอแบบออฟไลน์เหมือนแอปจริง'}},
 ];
 const CHANGELOG=[
+ {v:'1.1',d:'2026-06-06',c:[
+   {en:'🍬 Sweetness control — set sweetness 0%-100% for drinks with syrup/sugar/honey. Sweetener amounts adjust automatically while other ingredients stay the same.',th:'🍬 ปรับระดับความหวาน — ตั้งค่าความหวาน 0%-100% สำหรับเครื่องดื่มที่มีน้ำเชื่อม/น้ำตาล/น้ำผึ้ง ปริมาณของหวานปรับตามอัตโนมัติโดยส่วนผสมอื่นไม่เปลี่ยน'},
+   {en:'Sweetener checkbox in drink editor — mark ingredients as sweeteners (🍬) when adding/editing drinks.',th:'ติ๊กถูก 🍬 ในหน้าแก้ไขสูตร — เพื่อกำหนดว่าส่วนผสมไหนให้ความหวาน'},
+   {en:'Sweetness level saved in brew log for future reference.',th:'บันทึกระดับความหวานใน brew log เพื่อใช้อ้างอิงในอนาคต'}]},
  {v:'1.0',d:'2026-06-06',c:[{en:'First release: drink menu, brew mode with timers, 5 barista tools, stock tracker, brew log, EN/TH, dark mode, offline, backup & restore.',th:'เวอร์ชันแรก: เมนูเครื่องดื่ม, โหมดชงพร้อมจับเวลา, เครื่องมือ 5 ตัว, ตัวติดตามสต็อก, สมุดบันทึกการชง, 2 ภาษา EN/TH, โหมดมืด, ใช้ออฟไลน์, สำรอง/กู้ข้อมูล'}]},
+
 ];
 let helpTab='guide';
 function openHelp(tab){
