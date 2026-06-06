@@ -725,7 +725,7 @@ async function abortBrew(){
   session=null; await kvSet('session',null); stopTick(); releaseWake(); vBrew();
 }
 async function finishBrew(){
-  const fin={drinkId:session.drinkId,drinkName:session.drinkName,scale:session.scale,sweetness:session.sweetness||1,startedAt:session.startedAt};
+  const fin={drinkId:session.drinkId,drinkName:session.drinkName,scale:session.scale,sweetness:session.sweetness!=null?session.sweetness:1,ice:session.ice!=null?session.ice:0.3,startedAt:session.startedAt};
   session=null; await kvSet('session',null); stopTick(); releaseWake();
   logEditor(null,fin);
 }
@@ -929,7 +929,7 @@ async function vLog(){
   <div style="margin-top:14px">
   ${logs.map(l=>`<div class="card">
     <div class="row"><div class="grow"><h3 style="margin:0;font-size:17px">${esc(l.drinkName)}</h3>
-      <div class="note">${new Date(l.at).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}${l.scale&&l.scale!==1?' · ×'+l.scale:''}${l.sweetness&&l.sweetness!==1?' · 🍬 '+(l.sweetness*100)+'%':''}</div></div>
+      <div class="note">${new Date(l.at).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}${l.scale&&l.scale!==1?' · ×'+l.scale:''}${l.sweetness!=null&&l.sweetness!==1?' · 🍬 '+(l.sweetness*100)+'%':''}${l.ice>0?' · 🧊 '+(l.ice===0.3?'Regular':l.ice===0.5?'Extra':'Ice'):''}${l.ice<0?' · 🧊 Fill':''}</div></div>
       <div style="color:var(--gold);font-size:16px;white-space:nowrap">${'★'.repeat(l.rating||0)}<span style="opacity:.25">${'★'.repeat(5-(l.rating||0))}</span></div>
       <button class="del-x" onclick="delLog('${l.id}')">✕</button></div>
     ${l.notes?`<div style="margin-top:8px;font-size:15px">${esc(l.notes)}</div>`:''}
@@ -944,7 +944,7 @@ async function viewPhoto(logId,idx){
 }
 async function logEditor(id,prefill){
   drinks=await dbAll('drinks');
-  const l=id?await dbGet('logs',id):{id:uid(),at:Date.now(),drinkId:prefill?.drinkId||'',drinkName:prefill?.drinkName||'',scale:prefill?.scale||1,rating:0,notes:'',photos:[]};
+  const l=id?await dbGet('logs',id):{id:uid(),at:Date.now(),drinkId:prefill?.drinkId||'',drinkName:prefill?.drinkName||'',scale:prefill?.scale||1,sweetness:prefill?.sweetness!=null?prefill.sweetness:1,ice:prefill?.ice!=null?prefill.ice:0.3,rating:0,notes:'',photos:[]};
   logPhotos=[...(l.photos||[])]; let rating=l.rating||0;
   window._logRate=v=>{rating=v;document.querySelectorAll('.stars span').forEach((s,i)=>s.classList.toggle('on',i<v));};
   window._logSave=async()=>{
