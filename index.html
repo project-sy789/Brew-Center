@@ -753,8 +753,8 @@ const TOOLS={
       <div class="result-box"><div class="note">${t('profit')}</div><div class="v" id="costProfit"></div>
       <div class="note" id="costMargin"></div></div>
     </div>`;
-    tot=costRows.reduce((a,r)=>a+(r[1]||0)*(r[3]||0),0);
-    const profit=sellPrice-tot, margin=tot?Math.round(profit/sellPrice*100):0;
+    tot=costRows.reduce((a,r)=>a+(r[3]||0),0);
+    const profit=sellPrice-tot, margin=sellPrice?Math.round(profit/sellPrice*100):0;
     $('#costTotal').textContent=tot.toFixed(1)+' ฿';
     $('#costProfit').textContent=profit.toFixed(1)+' ฿';
     $('#costMargin').textContent=t('margin_pct')+': '+margin+'%';
