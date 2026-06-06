@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#F5F0EB">
+<title>Brew Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>☕</text></svg>">
+<style>
+:root{
+  --bg:#F5F0EB; --surface:#FFFBF6; --surface2:#EDE4D8; --ink:#3D2E1F; --muted:#8A7A65;
+  --primary:#6F4E37; --primary-ink:#FFF8EE; --accent:#C4A265; --gold:#B8860B;
+  --line:#E0D5C5; --ok:#5B7A3A; --shadow:0 6px 24px rgba(70,40,20,.10), 0 1px 3px rgba(70,40,20,.08);
+  --r:18px; --r-s:12px; --nav-h:64px;
+}
+[data-theme="dark"]{
+  --bg:#1A1410; --surface:#261E18; --surface2:#352A20; --ink:#F0E6D7; --muted:#A89982;
+  --primary:#C4956A; --primary-ink:#1A1008; --accent:#D4B87A; --gold:#E0B860;
+  --line:#3D3024; --ok:#9DBA6E; --shadow:0 6px 24px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Sarabun',sans-serif; background:var(--bg); color:var(--ink);
+  font-size:16.5px; line-height:1.55; padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  background-image:radial-gradient(rgba(111,78,55,.05) 1px, transparent 1.4px);
+  background-size:22px 22px; min-height:100vh;
+}
+h1,h2,h3,.display{font-family:'Fraunces',serif; line-height:1.2; margin:0 0 .4em}
+button{font-family:inherit}
+header.app{
+  position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:8px;
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px; background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--line);
+}
+header.app .brand{font-family:'Fraunces',serif; font-weight:700; font-size:21px; letter-spacing:.2px; flex:1; display:flex; align-items:center; gap:8px}
+header.app .brand .crumb{display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--accent)}
+.iconbtn{
+  border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:999px;
+  min-width:42px; height:42px; padding:0 12px; font-size:15px; font-weight:600; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+}
+.iconbtn:active{transform:scale(.96)}
+main{padding:18px 16px 28px; max-width:760px; margin:0 auto}
+.tagline{color:var(--muted); font-size:14px; margin:-4px 0 14px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:16px; margin-bottom:14px}
+.card.flat{box-shadow:none}
+.row{display:flex; gap:10px; align-items:center}
+.row .grow{flex:1}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:999px; background:var(--surface2); border:1px solid var(--line); font-size:13px; font-weight:600; color:var(--muted); cursor:pointer}
+.chip.on{background:var(--primary); color:var(--primary-ink); border-color:var(--primary)}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+  background:var(--primary); color:var(--primary-ink); border:none; border-radius:999px;
+  padding:13px 22px; font-size:16px; font-weight:700; box-shadow:var(--shadow);
+}
+.btn.big{width:100%; padding:16px; font-size:18px}
+.btn.ghost{background:var(--surface); color:var(--ink); border:1px solid var(--line); box-shadow:none}
+.btn.warn{background:var(--accent); color:#fff}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.45; pointer-events:none}
+input,select,textarea{
+  font-family:inherit; font-size:16px; color:var(--ink); background:var(--surface);
+  border:1.5px solid var(--line); border-radius:var(--r-s); padding:11px 12px; width:100%;
+}
+input:focus,select:focus,textarea:focus{outline:none; border-color:var(--primary)}
+label.f{display:block; font-size:13px; font-weight:700; color:var(--muted); margin:12px 0 5px; text-transform:uppercase; letter-spacing:.4px}
+nav.bottom{
+  position:fixed; left:0; right:0; bottom:0; z-index:40; height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom); display:flex; background:var(--surface);
+  border-top:1px solid var(--line); box-shadow:0 -4px 20px rgba(80,50,20,.08);
+}
+nav.bottom button{
+  flex:1; border:none; background:none; color:var(--muted); font-size:11px; font-weight:700;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; padding-top:6px;
+}
+nav.bottom button svg{width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+nav.bottom button.on{color:var(--primary)}
+nav.bottom button.on svg{stroke-width:2.3}
+.recipe-card{display:flex; gap:14px; align-items:center; cursor:pointer}
+.recipe-card .ico{width:54px; height:54px; border-radius:16px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0}
+.recipe-card h3{margin:0; font-size:18px}
+.recipe-card .meta{color:var(--muted); font-size:13.5px; margin-top:2px}
+.pillrow{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px}
+table.ing{width:100%; border-collapse:collapse; font-size:15.5px}
+table.ing td{padding:9px 4px; border-bottom:1px dashed var(--line)}
+table.ing td:nth-child(2){text-align:right; font-weight:700; white-space:nowrap}
+table.ing td:nth-child(3){text-align:right; color:var(--muted); font-size:13px; width:64px; white-space:nowrap}
+.stepline{display:flex; gap:12px; padding:10px 0; border-bottom:1px dashed var(--line); align-items:baseline}
+.stepline .n{font-family:'Fraunces',serif; font-weight:700; color:var(--accent); min-width:26px}
+.stepline .tmr{margin-left:auto; color:var(--muted); font-size:13px; white-space:nowrap; font-weight:700}
+.timer-display{font-family:'Fraunces',serif; font-weight:700; font-size:72px; text-align:center; letter-spacing:1px; margin:8px 0; font-variant-numeric:tabular-nums}
+.timer-display.done{color:var(--accent); animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.45}}
+.progressbar{height:8px; background:var(--surface2); border-radius:99px; overflow:hidden; margin:10px 0}
+.progressbar i{display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--accent)); border-radius:99px; transition:width .5s}
+.stars{display:flex; gap:6px; font-size:30px; cursor:pointer; user-select:none}
+.stars span{opacity:.25; transition:.15s}
+.stars span.on{opacity:1}
+.photo-grid{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+.photo-grid img{width:92px; height:92px; object-fit:cover; border-radius:12px; border:1px solid var(--line)}
+.photo-grid .addph{width:92px; height:92px; border-radius:12px; border:2px dashed var(--line); display:flex; align-items:center; justify-content:center; font-size:28px; color:var(--muted); cursor:pointer; background:none}
+.modal-bg{position:fixed; inset:0; background:rgba(20,12,8,.5); z-index:60; display:flex; align-items:flex-end; justify-content:center; animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.modal{
+  background:var(--bg); width:100%; max-width:760px; max-height:92vh; overflow:auto;
+  border-radius:24px 24px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom));
+  animation:up .25s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes up{from{transform:translateY(40px); opacity:0}}
+.modal .handle{width:44px; height:5px; border-radius:99px; background:var(--line); margin:0 auto 14px}
+.empty{text-align:center; color:var(--muted); padding:36px 10px}
+.empty .big{font-size:44px; margin-bottom:8px}
+.kbd{background:var(--surface2); border:1px solid var(--line); border-radius:6px; padding:1px 7px; font-size:13px; font-weight:700}
+.note{font-size:13.5px; color:var(--muted)}
+pre.code{background:var(--surface2); border:1px solid var(--line); border-radius:var(--r-s); padding:12px; font-size:12.5px; white-space:pre-wrap; word-break:break-word; max-height:300px; overflow:auto}
+.seg{display:flex; background:var(--surface2); border-radius:999px; padding:4px; gap:4px; border:1px solid var(--line)}
+.seg button{flex:1; border:none; border-radius:999px; padding:9px 6px; background:none; color:var(--muted); font-weight:700; font-size:14px; cursor:pointer}
+.seg button.on{background:var(--surface); color:var(--ink); box-shadow:var(--shadow)}
+.toolgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.toolgrid .card{margin:0; text-align:center; cursor:pointer; padding:20px 10px}
+.toolgrid .card .em{font-size:34px; margin-bottom:6px}
+.toolgrid .card h3{font-size:15.5px; margin:0}
+.result-box{background:var(--surface2); border-radius:var(--r-s); padding:14px; text-align:center; margin-top:14px}
+.result-box .v{font-family:'Fraunces',serif; font-size:34px; font-weight:700; color:var(--primary)}
+.feeditem{display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line)}
+.feeditem .dot{width:12px; height:12px; border-radius:50%; background:var(--gold); margin-top:6px; flex-shrink:0}
+.toast{position:fixed; bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:11px 20px; border-radius:999px; font-weight:600; z-index:90; animation:fade .2s; max-width:88vw; text-align:center}
+.del-x{border:none; background:none; color:var(--accent); font-size:20px; cursor:pointer; padding:4px 8px}
+.badge{display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; background:var(--ok); color:#fff; margin-left:6px}
+@media(min-width:700px){ .toolgrid{grid-template-columns:repeat(3,1fr)} .modal{border-radius:24px; align-self:center} .modal-bg{align-items:center} }
+</style>
+</head>
+<body data-theme="light">
+<header class="app">
+  <div class="brand"><span class="crumb"></span> Brew Center</div>
+  <button class="iconbtn" id="btnLang" onclick="toggleLang()">EN</button>
+  <button class="iconbtn" id="btnTheme" onclick="toggleTheme()">◐</button>
+  <button class="iconbtn" onclick="openHelp()">?</button>
+  <button class="iconbtn" onclick="openSettings()">⚙</button>
+</header>
+<main id="view"></main>
+<nav class="bottom" id="nav"></nav>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<script>
+/* ============ i18n ============ */
+const I18N = {
+  nav_drinks:["Drinks","เครื่องดื่ม"], nav_brew:["Brew","เริ่มชง"], nav_tools:["Tools","เครื่องมือ"],
+  nav_stock:["Stock","สต็อก"], nav_log:["Log","บันทึก"],
+  drinks_title:["Drink Menu","เมนูเครื่องดื่ม"], drinks_sub:["Tap a drink to view, scale & brew","แตะเครื่องดื่มเพื่อดู ปรับขนาด และเริ่มชง"],
+  add_drink:["Add Drink","เพิ่มเครื่องดื่ม"], import_ai:["Import with AI","Import ด้วย AI"],
+  search:["Search drinks...","ค้นหาเมนู..."],
+  cat_all:["All","ทั้งหมด"], cat_hotcoffee:["Hot Coffee","กาแฟร้อน"], cat_coldcoffee:["Cold Coffee","กาแฟเย็น"], cat_tea:["Tea","ชา"], cat_smoothie:["Smoothies","สมูทตี้"], cat_soda:["Sodas & Refreshers","โซดา & รีเฟรช"], cat_special:["Specials","พิเศษ"],
+  ingredients:["Ingredients","ส่วนผสม"], steps:["Steps","ขั้นตอน"],
+  serve_size:["Serving size","ขนาดที่เสิร์ฟ"], serving:["serving","ที่เสิร์ฟ"],
+  cost_est:["Est. cost","ต้นทุนโดยประมาณ"], selling_price:["Selling price","ราคาขาย"], margin:["Margin","กำไร"],
+  scale:["Scale servings","ปรับจำนวนเสิร์ฟ"], multiplier:["Multiplier","ตัวคูณ"],
+  start_brew:["Start Brewing","เริ่มชง"], edit:["Edit","แก้ไข"], delete:["Delete","ลบ"],
+  duplicate:["Duplicate","คัดลอก"], total_volume:["Total volume","ปริมาตรรวม"],
+  step:["Step","ขั้นที่"], of:["of","จาก"], no_timer:["No timer — tap Next when done","ไม่มีจับเวลา — เสร็จแล้วกด Next"],
+  next_step:["Next Step","ขั้นถัดไป"], skip_timer:["Skip timer","ข้าม timer"], add_5m:["+5 min","+5 นาที"],
+  pause:["Pause","หยุดพัก"], resume:["Resume","ทำต่อ"], abort:["Abort brew","ยกเลิกการชง"],
+  step_done:["⏰ Time's up!","⏰ ครบเวลาแล้ว!"], finish_brew:["Finish & Save Log","เสร็จสิ้น & บันทึก Log"],
+  brew_none:["No active brew session","ยังไม่มี session การชง"], brew_none_sub:["Pick a drink and tap Start Brewing — the app will guide you step-by-step with timers.","เลือกเมนูแล้วกด เริ่มชง — แอปจะพาทำทีละขั้นพร้อมจับเวลาให้"],
+  resume_brew:["Resume brew in progress","ทำการชงที่ค้างไว้ต่อ"],
+  browse_drinks:["Browse Drinks","ไปดูเมนู"], elapsed:["overtime","เกินเวลา"],
+  keep_awake:["Screen stays awake during brewing","หน้าจอจะไม่ดับระหว่างชง"],
+  tools_title:["Barista Toolbox","กล่องเครื่องมือบาริสต้า"],
+  t_cost:["Cost & Margin Calc","คำนวณต้นทุน & กำไร"], t_scale:["Serving Scaler","ปรับขนาดเสิร์ฟ"],
+  t_temp:["Brew Temp Guide","อุณหภูมิการชง"], t_units:["Unit Converter","แปลงหน่วย"], t_dilution:["Ice/Dilution Calc","คำนวณน้ำแข็ง/น้ำ"],
+  cost_per_unit:["Cost per unit (฿)","ราคาต่อหน่วย (฿)"], amount_used:["Amount used","ปริมาณที่ใช้"], unit:["Unit","หน่วย"],
+  ingredient_name:["Ingredient","ส่วนผสม"], add_row:["+ Add row","+ เพิ่มแถว"],
+  total_cost:["Total cost","ต้นทุนรวม"], sell_price:["Sell price (฿)","ราคาขาย (฿)"],
+  profit:["Profit","กำไร"], margin_pct:["Margin %","กำไร %"],
+  from_servings:["From servings","จากจำนวนเสิร์ฟ"], to_servings:["To servings","เป็นจำนวนเสิร์ฟ"],
+  scale_factor:["Scale factor","ตัวคูณ"], scale_result:["Multiply all ingredients by","คูณส่วนผสมทั้งหมดด้วย"],
+  coffee_type:["Coffee type","ชนิดกาแฟ"], brew_method:["Brew method","วิธีการชง"], optimal_temp:["Optimal temp","อุณหภูมิที่เหมาะสม"],
+  temp_range:["Temp range","ช่วงอุณหภูมิ"], notes_tip:["Notes / tips","โน้ต / คำแนะนำ"],
+  u_what:["Convert from","แปลงจาก"], u_amount:["Amount","ปริมาณ"], u_from:["From unit","จากหน่วย"], u_to:["To unit","เป็นหน่วย"],
+  oz:["oz","ออนซ์"], ml:["ml","มล."], shot:["shot(s)","ช็อต"], tbsp:["tbsp","ชต."], tsp:["tsp","ชช."], cup:["cup","ถ้วย"], liter:["L","ล."],
+  ice_option:["Ice option","แบบน้ำแข็ง"], no_ice:["No ice","ไม่ใส่น้ำแข็ง"], regular_ice:["Regular ice","น้ำแข็งปกติ"], extra_ice:["Extra ice","น้ำแข็งเต็มแก้ว"],
+  orig_vol:["Original volume (ml)","ปริมาตรตั้งต้น (มล.)"], ice_level:["Ice level","ระดับน้ำแข็ง"],
+  adjusted_vol:["Adjusted volume","ปริมาตรที่ปรับแล้ว"], ice_to_add:["Ice to add","น้ำแข็งที่ต้องใส่"],
+  stock_title:["Stock Tracker","ตัวติดตามสต็อก"], stock_sub:["Track your ingredients inventory","ติดตามปริมาณวัตถุดิบคงเหลือ"],
+  stock_add:["Update Stock","อัปเดตสต็อก"], stock_item:["Item","รายการ"], stock_qty:["Qty left","คงเหลือ"],
+  stock_unit:["Unit","หน่วย"], stock_min:["Min alert","แจ้งเตือนเมื่อเหลือ"],
+  stock_note:["Note (supplier, batch...)","โน้ต (ซัพพลายเออร์, ล็อต...)"],
+  last_updated:["Last updated","อัปเดตล่าสุด"], low_stock:["Low stock!","ของใกล้หมด!"],
+  no_stock:["No stock items yet","ยังไม่มีรายการสต็อก"],
+  log_title:["Brew Log","สมุดบันทึกการชง"], log_sub:["Every brew is a lesson","ทุกแก้วที่ชง คือบทเรียน"],
+  add_log:["Add Entry","เพิ่มบันทึก"], log_drink:["Drink","เครื่องดื่ม"], log_rating:["Rating","คะแนน"],
+  log_notes:["Notes — what worked, what to adjust","โน้ต — อะไรดี อะไรต้องปรับ"], log_photos:["Photos (max 3)","รูปถ่าย (สูงสุด 3)"],
+  no_logs:["No brew logs yet","ยังไม่มีบันทึกการชง"],
+  save:["Save","บันทึก"], cancel:["Cancel","ยกเลิก"], close:["Close","ปิด"], confirm_del:["Delete this item?","ลบรายการนี้?"],
+  name:["Drink name","ชื่อเมนู"], category:["Category","หมวด"], type_hot:["Hot drink","เครื่องดื่มร้อน"], type_cold:["Cold / Iced","เครื่องดื่มเย็น"],
+  step_title:["Step title","ชื่อขั้นตอน"], step_desc:["Description","รายละเอียด"], minutes:["min","นาที"],
+  add_ing:["+ Ingredient","+ ส่วนผสม"], add_step:["+ Step","+ ขั้นตอน"],
+  settings:["Settings & Backup","ตั้งค่า & สำรองข้อมูล"],
+  export_data:["Export backup (JSON)","Export สำรองข้อมูล (JSON)"], import_data:["Import backup","Import ข้อมูลสำรอง"],
+  export_note:["Download all drinks, logs & stock data as one file. Do this monthly!","ดาวน์โหลดเมนู บันทึก และข้อมูลสต็อกทั้งหมดเป็นไฟล์เดียว แนะนำทำเดือนละครั้ง!"],
+  import_warn:["Importing replaces ALL current data. Continue?","การ import จะแทนที่ข้อมูลทั้งหมด ดำเนินการต่อ?"],
+  data_saved:["Saved ✓","บันทึกแล้ว ✓"], copied:["Copied ✓","คัดลอกแล้ว ✓"],
+  auto_backup_done:["📦 Daily backup saved","📦 บันทึก backup ประจำวันแล้ว"],
+  last_backup:["Last backup","backup ล่าสุด"], never_backup:["never yet","ยังไม่เคย"],
+  auto_backup_note:["Auto-backup is on: a backup file downloads the first time you open the app each day.","backup อัตโนมัติเปิดอยู่: ไฟล์สำรองจะถูกดาวน์โหลดครั้งแรกที่เปิดแอปในแต่ละวัน"],
+  help_title:["Help & Updates","ช่วยเหลือ & อัปเดต"], help_guide:["User Guide","คู่มือใช้งาน"], help_changelog:["What's New","มีอะไรใหม่"],
+  ai_title:["Import drink with AI","Import เมนูด้วย AI"],
+  ai_how:["1. Copy the prompt below\n2. Paste it into any AI (Claude, ChatGPT, Gemini)\n3. Paste the drink recipe text after it (any language)\n4. Copy the JSON the AI returns and paste it in the box below","1. คัดลอก prompt ด้านล่าง\n2. วางใน AI ตัวไหนก็ได้ (Claude, ChatGPT, Gemini)\n3. แปะข้อความสูตรเครื่องดื่มต่อท้าย (ภาษาไหนก็ได้)\n4. คัดลอก JSON ที่ AI ตอบ มาวางในช่องล่าง"],
+  copy_prompt:["Copy Prompt","คัดลอก Prompt"], paste_json:["Paste JSON from AI here...","วาง JSON จาก AI ที่นี่..."],
+  import_btn:["Import Drink","Import เมนู"], invalid_json:["Invalid JSON — please check","JSON ไม่ถูกต้อง กรุณาตรวจสอบ"],
+  brew_saved:["Brew logged! Great job 🎉","บันทึกการชงแล้ว เก่งมาก 🎉"],
+  min_short:["min","นาที"], hr_short:["h","ชม."],
+  started:["Started","เริ่มเมื่อ"], scaled:["scaled","ปรับขนาด"],
+  source:["Source (URL / book)","ที่มา (URL / หนังสือ)"], notes_opt:["Recipe notes (optional)","โน้ตของสูตร (ไม่บังคับ)"],
+  serve_size_label:["Serves","สำหรับ"], serve_size_unit:["cup(s)","แก้ว"],
+};
+let LANG = 'en';
+const t = k => (I18N[k]||[k,k])[LANG==='en'?0:1];
+const tn = obj => typeof obj==='string' ? obj : (obj?.[LANG] || obj?.en || obj?.th || '');
+
+/* ============ IndexedDB ============ */
+const DB_NAME='brew-center', DB_VER=1;
+let db;
+function openDB(){return new Promise((res,rej)=>{
+  const r=indexedDB.open(DB_NAME,DB_VER);
+  r.onupgradeneeded=e=>{const d=e.target.result;
+    ['drinks','logs','stock','kv'].forEach(s=>{if(!d.objectStoreNames.contains(s))d.createObjectStore(s,{keyPath:'id'});});
+  };
+  r.onsuccess=e=>{db=e.target.result;res(db)}; r.onerror=()=>rej(r.error);
+});}
+const tx=(store,mode='readonly')=>db.transaction(store,mode).objectStore(store);
+const dbAll=s=>new Promise(r=>{const q=tx(s).getAll();q.onsuccess=()=>r(q.result||[])});
+const dbGet=(s,id)=>new Promise(r=>{const q=tx(s).get(id);q.onsuccess=()=>r(q.result)});
+const dbPut=(s,v)=>new Promise(r=>{const q=tx(s,'readwrite').put(v);q.onsuccess=()=>r(v)});
+const dbDel=(s,id)=>new Promise(r=>{const q=tx(s,'readwrite').delete(id);q.onsuccess=()=>r()});
+const dbClear=s=>new Promise(r=>{const q=tx(s,'readwrite').clear();q.onsuccess=()=>r()});
+const kvGet=async k=>(await dbGet('kv',k))?.v;
+const kvSet=(k,v)=>dbPut('kv',{id:k,v});
+const uid=()=> Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+/* ============ Seed drinks ============ */
+const SEEDS = [
+{id:'seed-iced-latte',seed:true,icon:'☕',cat:'coldcoffee',type:'cold',
+ name:{en:'Iced Latte',th:'ไอซ์ลาเต้'}, source:'Double-shot iced latte, ~350ml',
+ notes:{en:'Use fresh espresso shots — stale shots taste bitter. Chill the glass first for best results.',th:'ใช้ espresso shot สดใหม่ — shot ที่ทิ้งไว้จะขม แช่แก้วให้เย็นก่อนเพื่อผลลัพธ์ที่ดีที่สุด'},
+ ingredients:[
+  {name:{en:'Espresso shots',th:'Espresso shot'},amount:2,unit:'shot',cost:8},
+  {name:{en:'Fresh milk',th:'นมสด'},amount:200,unit:'ml',cost:6},
+  {name:{en:'Ice cubes',th:'น้ำแข็ง'},amount:1,unit:'cup',cost:1},
+  {name:{en:'Sugar syrup (optional)',th:'น้ำเชื่อม (ไม่บังคับ)'},amount:15,unit:'ml',cost:0.5}],
+ steps:[
+  {t:{en:'Chill the glass',th:'แช่แก้วให้เย็น'},d:{en:'Fill serving glass with ice water to chill while prepping.',th:'ใส่น้ำแข็ง+น้ำในแก้วเสิร์ฟเพื่อแช่แก้วไว้ก่อน'},m:0},
+  {t:{en:'Pull espresso shots',th:'ดึง espresso shot'},d:{en:'Grind fresh, tamp evenly, extract 2 shots (~60ml).',th:'บดกาแฟสด กดให้เรียบ ดึง 2 shot (~60 มล.)'},m:2},
+  {t:{en:'Build the drink',th:'ประกอบแก้ว'},d:{en:'Empty ice water. Fill glass with fresh ice. Pour milk over ice, then float espresso on top for a layered look.',th:'เทน้ำแข็ง+น้ำทิ้ง ใส่น้ำแข็งใหม่ เทนมลงบนน้ำแข็ง แล้วค่อยๆเท espresso ลงด้านบนให้เกิดชั้น'},m:0},
+  {t:{en:'Add syrup & serve',th:'เติมน้ำเชื่อม & เสิร์ฟ'},d:{en:'Add sugar syrup if desired. Stir gently and serve immediately.',th:'เติมน้ำเชื่อมตามชอบ คนเบาๆ เสิร์ฟทันที'},m:0}]},
+{id:'seed-cappuccino',seed:true,icon:'☕',cat:'hotcoffee',type:'hot',
+ name:{en:'Hot Cappuccino',th:'คาปูชิโน่ร้อน'}, source:'Classic Italian cappuccino, ~240ml',
+ notes:{en:'The key is microfoam — silky, not bubbly. Temperature: milk 60-65°C, no more.',th:'หัวใจคือ microfoam — เนียนไม่ฟองใหญ่ อุณหภูมินม 60-65°C ห้ามเกิน'},
+ ingredients:[
+  {name:{en:'Espresso shot',th:'Espresso shot'},amount:1,unit:'shot',cost:4},
+  {name:{en:'Whole milk',th:'นมจืด'},amount:180,unit:'ml',cost:5},
+  {name:{en:'Cocoa powder (dusting)',th:'ผงโกโก้ (โรยหน้า)'},amount:1,unit:'tsp',cost:0.3}],
+ steps:[
+  {t:{en:'Preheat cup',th:'อุ่นถ้วย'},d:{en:'Rinse cup with hot water to preheat.',th:'ล้างถ้วยด้วยน้ำร้อนเพื่ออุ่นถ้วย'},m:0},
+  {t:{en:'Pull espresso shot',th:'ดึง espresso shot'},d:{en:'Extract directly into preheated cup.',th:'ดึง shot ใส่ถ้วยที่อุ่นไว้'},m:1},
+  {t:{en:'Steam milk',th:'สตีมนม'},d:{en:'Steam to 60-65°C. Create microfoam — silky texture, no large bubbles. Swirl and tap pitcher.',th:'สตีมถึง 60-65°C สร้าง microfoam เนื้อเนียนไม่มีฟองใหญ่ หมุนเหยือกและเคาะฟอง'},m:3},
+  {t:{en:'Pour & present',th:'เท & นำเสนอ'},d:{en:'Pour milk into espresso with latte art motion. Dust with cocoa powder. Serve immediately.',th:'เทนมลง espresso แบบทำ latte art โรยผงโกโก้ เสิร์ฟทันที'},m:0}]},
+{id:'seed-matcha',seed:true,icon:'🍵',cat:'tea',type:'cold',
+ name:{en:'Iced Matcha Latte',th:'มัทฉะลาเต้เย็น'}, source:'Ceremonial grade matcha, ~350ml',
+ notes:{en:'Sift the matcha to avoid lumps. Water temp for matcha: 80°C, never boiling. Ceremonial grade tastes best iced.',th:'ร่อนมัทฉะก่อนใช้ กันเป็นก้อน น้ำชงมัทฉะ 80°C ห้ามใช้น้ำเดือด มัทฉะเกรด ceremonial อร่อยสุดตอนเย็น'},
+ ingredients:[
+  {name:{en:'Ceremonial matcha powder',th:'ผงมัทฉะ ceremonial'},amount:4,unit:'tsp',cost:12},
+  {name:{en:'Hot water (80°C)',th:'น้ำร้อน 80°C'},amount:60,unit:'ml',cost:0},
+  {name:{en:'Milk',th:'นมจืด'},amount:200,unit:'ml',cost:6},
+  {name:{en:'Sugar syrup',th:'น้ำเชื่อม'},amount:20,unit:'ml',cost:0.5},
+  {name:{en:'Ice cubes',th:'น้ำแข็ง'},amount:1,unit:'cup',cost:1}],
+ steps:[
+  {t:{en:'Sift matcha',th:'ร่อนมัทฉะ'},d:{en:'Sift matcha powder into a bowl to remove lumps.',th:'ร่อนผงมัทฉะลงชาม กันเป็นก้อน'},m:0},
+  {t:{en:'Whisk matcha',th:'ตีมัทฉะ'},d:{en:'Add 80°C water, whisk in W motion until frothy and no clumps (~30 sec).',th:'เติมน้ำ 80°C ตีเป็น W จนขึ้นฟองเนียนไม่มีก้อน (~30 วิ)'},m:1},
+  {t:{en:'Build & serve',th:'ประกอบแก้ว'},d:{en:'Fill glass with ice. Add syrup, pour milk, then pour matcha on top for a layered effect.',th:'ใส่น้ำแข็งในแก้ว เติมน้ำเชื่อม เทนม แล้วเทมัทฉะลงด้านบนให้เกิดชั้นสวย'},m:0}]},
+{id:'seed-thai-tea',seed:true,icon:'🧡',cat:'tea',type:'cold',
+ name:{en:'Thai Iced Tea',th:'ชาไทยเย็น'}, source:'Authentic Thai street-style, ~400ml',
+ notes:{en:'Use Thai tea leaves (cha tra mue brand preferred). Steep long for strong color. The condensed milk makes it authentic.',th:'ใช้ใบชาตรามือ (Cha Tra Mue) แช่นานให้สีเข้ม นมข้นหวานคือหัวใจของชาไทย'},
+ ingredients:[
+  {name:{en:'Thai tea leaves',th:'ใบชาตรามือ'},amount:4,unit:'tbsp',cost:5},
+  {name:{en:'Hot water',th:'น้ำร้อน'},amount:250,unit:'ml',cost:0},
+  {name:{en:'Condensed milk',th:'นมข้นหวาน'},amount:40,unit:'ml',cost:3},
+  {name:{en:'Evaporated milk (topping)',th:'นมข้นจืด (ราดหน้า)'},amount:30,unit:'ml',cost:2.5},
+  {name:{en:'Sugar',th:'น้ำตาลทราย'},amount:2,unit:'tbsp',cost:0.5},
+  {name:{en:'Ice (crushed)',th:'น้ำแข็งเกล็ด'},amount:2,unit:'cup',cost:2}],
+ steps:[
+  {t:{en:'Brew tea',th:'ชงชา'},d:{en:'Steep Thai tea leaves in hot water for 5-7 min. Strain through a cloth filter for smooth tea.',th:'แช่ใบชาในน้ำร้อน 5-7 นาที กรองด้วยผ้าขาวบางให้ได้น้ำชาเนียน'},m:7},
+  {t:{en:'Sweeten',th:'ใส่น้ำตาล'},d:{en:'Add sugar while tea is hot. Stir to dissolve.',th:'ใส่น้ำตาลตอนชาร้อน คนให้ละลาย'},m:0},
+  {t:{en:'Cool down',th:'พักให้เย็น'},d:{en:'Let tea cool to room temp (or quick-cool in ice bath).',th:'พักชาให้เย็นลงถึงอุณหภูมิห้อง (หรือแช่อ่างน้ำแข็งให้เร็ว)'},m:15},
+  {t:{en:'Build & serve',th:'ประกอบแก้ว & เสิร์ฟ'},d:{en:'Fill glass with crushed ice. Pour tea over ice, add condensed milk, stir. Top with evaporated milk.',th:'ใส่น้ำแข็งเกล็ดในแก้ว เทชาลงบนน้ำแข็ง ใส่นมข้นหวาน คนให้เข้ากัน ราดนมข้นจืดด้านบน'},m:0}]},
+{id:'seed-mango-smoothie',seed:true,icon:'🥭',cat:'smoothie',type:'cold',
+ name:{en:'Mango Smoothie',th:'สมูทตี้มะม่วง'}, source:'Tropical mango smoothie, ~400ml',
+ notes:{en:'Use ripe, sweet mangoes (Nam Dok Mai or Ataulfo). Frozen mango makes it thick and creamy without diluting.',th:'ใช้มะม่วงสุกหวาน (น้ำดอกไม้) มะม่วงแช่แข็งทำให้เนื้อข้นครีมมี่โดยไม่ต้องใส่น้ำแข็งเยอะ'},
+ ingredients:[
+  {name:{en:'Ripe mango (fresh or frozen)',th:'มะม่วงสุก (สดหรือแช่แข็ง)'},amount:200,unit:'ml',cost:10},
+  {name:{en:'Yogurt (plain)',th:'โยเกิร์ตรสธรรมชาติ'},amount:100,unit:'ml',cost:5},
+  {name:{en:'Milk',th:'นมจืด'},amount:80,unit:'ml',cost:2.5},
+  {name:{en:'Honey',th:'น้ำผึ้ง'},amount:1,unit:'tbsp',cost:1},
+  {name:{en:'Ice cubes',th:'น้ำแข็ง'},amount:0.5,unit:'cup',cost:0.5}],
+ steps:[
+  {t:{en:'Prep mango',th:'เตรียมมะม่วง'},d:{en:'Peel and cube ripe mango. If fresh, freeze 1h for thicker texture.',th:'ปอกเปลือก หั่นเต๋า ถ้าใช้มะม่วงสด แช่ฟรีซ 1 ชม.ให้เนื้อข้น'},m:0},
+  {t:{en:'Blend',th:'ปั่น'},d:{en:'Add mango, yogurt, milk, honey, and ice to blender. Blend until smooth and creamy (~1 min).',th:'ใส่มะม่วง โยเกิร์ต นม น้ำผึ้ง และน้ำแข็งลงโถปั่น ปั่นจนเนียน (~1 นาที)'},m:1},
+  {t:{en:'Adjust & serve',th:'ปรับรส & เสิร์ฟ'},d:{en:'Taste and add honey if needed. Pour into glass, garnish with a mango slice.',th:'ชิมรส เติมน้ำผึ้งถ้าต้องการ เทใส่แก้ว ตกแต่งด้วยมะม่วงแผ่น'},m:0}]},
+{id:'seed-choc-frappe',seed:true,icon:'🍫',cat:'smoothie',type:'cold',
+ name:{en:'Chocolate Frappe',th:'ช็อกโกแลตปั่น'}, source:'Blended chocolate frappe, ~400ml',
+ notes:{en:'Use good-quality cocoa or chocolate sauce. Top with whipped cream for the full cafe experience.',th:'ใช้โกโก้หรือซอสช็อกโกแลตคุณภาพดี ท็อปด้วยวิปครีมเพื่อประสบการณ์คาเฟ่เต็มรูปแบบ'},
+ ingredients:[
+  {name:{en:'Chocolate sauce',th:'ซอสช็อกโกแลต'},amount:40,unit:'ml',cost:4},
+  {name:{en:'Cocoa powder',th:'ผงโกโก้'},amount:1,unit:'tbsp',cost:1},
+  {name:{en:'Milk',th:'นมจืด'},amount:180,unit:'ml',cost:5},
+  {name:{en:'Sugar syrup',th:'น้ำเชื่อม'},amount:20,unit:'ml',cost:0.5},
+  {name:{en:'Ice cubes',th:'น้ำแข็ง'},amount:1,unit:'cup',cost:1},
+  {name:{en:'Whipped cream',th:'วิปครีม'},amount:30,unit:'ml',cost:3},
+  {name:{en:'Chocolate drizzle',th:'ซอสช็อกฯ ราดหน้า'},amount:10,unit:'ml',cost:1}],
+ steps:[
+  {t:{en:'Blend',th:'ปั่น'},d:{en:'Add chocolate sauce, cocoa, milk, syrup, and ice to blender. Blend until smooth. Drizzle chocolate inside glass for decoration.',th:'ใส่ซอสช็อกฯ โกโก้ นม น้ำเชื่อม และน้ำแข็งลงโถปั่น ปั่นจนเนียน ราดซอสช็อกฯ ข้างแก้วเพื่อตกแต่ง'},m:1},
+  {t:{en:'Top & serve',th:'ท็อปปิ้ง & เสิร์ฟ'},d:{en:'Pour into glass. Top with whipped cream and chocolate drizzle.',th:'เทใส่แก้ว ท็อปด้วยวิปครีมและราดซอสช็อกฯ'},m:0}]},
+{id:'seed-blue-soda',seed:true,icon:'🫧',cat:'soda',type:'cold',
+ name:{en:'Blue Curacao Soda',th:'บลูคูราเซาโซดา'}, source:'Vibrant blue refresher, ~350ml',
+ notes:{en:'Build in order for the gradient effect. Stir only when ready to drink.',th:'เรียงตามลำดับให้เกิด gradient คนตอนพร้อมดื่มเท่านั้น'},
+ ingredients:[
+  {name:{en:'Blue curacao syrup',th:'บลูคูราเซาไซรัป'},amount:30,unit:'ml',cost:4},
+  {name:{en:'Lemon juice (fresh)',th:'น้ำมะนาวสด'},amount:20,unit:'ml',cost:1},
+  {name:{en:'Soda water',th:'น้ำโซดา'},amount:200,unit:'ml',cost:1},
+  {name:{en:'Ice cubes',th:'น้ำแข็ง'},amount:1,unit:'cup',cost:1},
+  {name:{en:'Lemon slice (garnish)',th:'มะนาวฝาน (ตกแต่ง)'},amount:1,unit:'slice',cost:0.5}],
+ steps:[
+  {t:{en:'Build the drink',th:'ประกอบแก้ว'},d:{en:'Fill glass with ice. Pour blue curacao syrup over ice. Add fresh lemon juice — it will sink and create a color gradient.',th:'ใส่น้ำแข็งในแก้ว เทบลูคูราเซาไซรัปลงบนน้ำแข็ง ใส่น้ำมะนาวสด — มันจะจมลงและเกิด gradient สีสวย'},m:0},
+  {t:{en:'Top & garnish',th:'เติมโซดา & ตกแต่ง'},d:{en:'Slowly top with soda water. Garnish with lemon slice on rim.',th:'ค่อยๆเติมโซดา ตกแต่งด้วยมะนาวฝานที่ขอบแก้ว'},m:0}]},
+{id:'seed-dirty-coffee',seed:true,icon:'✨',cat:'special',type:'cold',
+ name:{en:'Dirty Coffee',th:'Dirty Coffee'}, source:'Trendy layered espresso over cold milk, ~300ml',
+ notes:{en:'The secret is VERY cold milk and a hot espresso shot pulled directly over it — the temperature contrast creates the "dirty" effect.',th:'ความลับคือนมเย็นจัดมากๆ และ shot espresso ร้อนที่ดึงลงบนนมโดยตรง — ความต่างของอุณหภูมิสร้างเอฟเฟกต์ "dirty"'},
+ ingredients:[
+  {name:{en:'Espresso shot (double)',th:'Espresso shot (ดับเบิ้ล)'},amount:2,unit:'shot',cost:8},
+  {name:{en:'Cold full-fat milk',th:'นมจืดเย็นจัด'},amount:180,unit:'ml',cost:6},
+  {name:{en:'Ice cubes (optional)',th:'น้ำแข็ง (ไม่บังคับ)'},amount:0.5,unit:'cup',cost:0.5}],
+ steps:[
+  {t:{en:'Chill everything',th:'แช่ทุกอย่างให้เย็น'},d:{en:'Pre-chill the serving glass in freezer. Make sure milk is very cold (~2°C).',th:'แช่แก้วในฟรีซ เอานมให้เย็นจัด (~2°C)'},m:0},
+  {t:{en:'Pour cold milk',th:'เทนมเย็น'},d:{en:'Pour ice-cold milk into the chilled glass. Add ice if using.',th:'เทนมเย็นจัดใส่แก้วแช่เย็น ใส่น้ำแข็งถ้าต้องการ'},m:0},
+  {t:{en:'Pull espresso directly over',th:'ดึง espresso ลงบนนมโดยตรง'},d:{en:'Position the glass so espresso drips directly onto the milk surface. The hot espresso floats briefly creating the "dirty" layer. Serve immediately — no stirring!',th:'วางแก้วให้ espresso หยดลงบนผิวนมโดยตรง espresso ร้อนจะลอยอยู่ด้านบนชั่วครู่ สร้างชั้น "dirty" เสิร์ฟทันที ห้ามคน!'},m:1}]}
+];
+
+/* ============ App state & helpers ============ */
+let TAB='drinks', drinks=[], session=null, tickInt=null, wakeLock=null;
+let drinkFilter='all', drinkSearch='';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+function toast(msg){const r=$('#toastRoot');r.innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>r.innerHTML='',2200);}
+function modal(html){$('#modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="handle"></div>${html}</div></div>`;}
+function closeModal(){$('#modalRoot').innerHTML='';}
+const fmtG=g=>Math.round(g*10)/10;
+const catName=c=>t('cat_'+c);
+const CATS=['hotcoffee','coldcoffee','tea','smoothie','soda','special'];
+const ICONS={hotcoffee:'☕',coldcoffee:'🧊',tea:'🍵',smoothie:'🥤',soda:'🫧',special:'✨'};
+
+function totalVolume(r){return r.ingredients.reduce((a,i)=>a+(i.amount||0)*(i.unit==='shot'?30:i.unit==='ml'?1:i.unit==='tsp'?5:i.unit==='tbsp'?15:i.unit==='cup'?240:0),0);}
+function totalCost(r){return r.ingredients.reduce((a,i)=>a+(i.cost||0),0);}
+
+/* ============ Navigation ============ */
+const NAV=[
+ ['drinks','M4 5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM13 3v5h5M8 13h8M8 17h5'],
+ ['brew','M5 11a7 7 0 0 1 14 0v1H5zM4 12h16M7 12v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-5M12 4v-2'],
+ ['tools','M9 3h6v4a3 3 0 0 1-6 0zM12 7v6m-4 8a4 4 0 0 1 8 0zM12 13a4 4 0 0 0-4 4m8 0a4 4 0 0 0-4-4'],
+ ['stock','M4 4h6v2a4 4 0 0 1 4 4v2h2a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM8 4v2'],
+ ['log','M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17V4M9 8h6M9 12h4']
+];
+function renderNav(){
+  $('#nav').innerHTML=NAV.map(([k,p])=>`<button class="${TAB===k?'on':''}" onclick="go('${k}')">
+   <svg viewBox="0 0 24 24"><path d="${p}"/></svg>${t('nav_'+k)}</button>`).join('');
+}
+function go(tab){TAB=tab;render();}
+function render(){
+  renderNav();
+  $('#btnLang').textContent=LANG.toUpperCase();
+  ({drinks:vDrinks,brew:vBrew,tools:vTools,stock:vStock,log:vLog})[TAB]();
+  window.scrollTo(0,0);
+}
+
+/* ============ Theme & Lang ============ */
+async function toggleTheme(){
+  const cur=document.body.dataset.theme==='dark'?'light':'dark';
+  document.body.dataset.theme=cur; await kvSet('theme',cur);
+  document.querySelector('meta[name=theme-color]').content=cur==='dark'?'#1A1410':'#F5F0EB';
+}
+async function toggleLang(){LANG=LANG==='en'?'th':'en';await kvSet('lang',LANG);render();}
+
+/* ============ Drinks tab ============ */
+async function vDrinks(){
+  drinks=await dbAll('drinks');
+  const list=drinks
+    .filter(r=>drinkFilter==='all'||r.cat===drinkFilter)
+    .filter(r=>!drinkSearch||tn(r.name).toLowerCase().includes(drinkSearch.toLowerCase()))
+    .sort((a,b)=>tn(a.name).localeCompare(tn(b.name)));
+  $('#view').innerHTML=`
+  <h1>${t('drinks_title')}</h1><div class="tagline">${t('drinks_sub')}</div>
+  <div class="row" style="margin-bottom:12px">
+    <input class="grow" placeholder="${t('search')}" value="${esc(drinkSearch)}" oninput="drinkSearch=this.value;vDrinks()">
+  </div>
+  <div class="pillrow">
+    <span class="chip ${drinkFilter==='all'?'on':''}" onclick="drinkFilter='all';vDrinks()">${t('cat_all')}</span>
+    ${CATS.map(c=>`<span class="chip ${drinkFilter===c?'on':''}" onclick="drinkFilter='${c}';vDrinks()">${catName(c)}</span>`).join('')}
+  </div>
+  ${list.map(r=>`<div class="card recipe-card" onclick="vDrinkDetail('${r.id}')">
+     <div class="ico">${r.icon||ICONS[r.cat]||'🥤'}</div>
+     <div class="grow"><h3>${esc(tn(r.name))}</h3>
+       <div class="meta">${catName(r.cat)} · ${r.steps.length} ${t('steps').toLowerCase()}${r.serves?` · ${r.serves} ${t('serve_size_unit')}`:''}</div>
+     </div><div style="color:var(--muted)">›</div></div>`).join('')
+   || `<div class="empty"><div class="big">🥤</div>${LANG==='en'?'No drinks found':'ไม่พบเครื่องดื่ม'}</div>`}
+  <div class="row" style="margin-top:18px">
+    <button class="btn grow" onclick="drinkEditor()">＋ ${t('add_drink')}</button>
+    <button class="btn ghost grow" onclick="aiImport()">✦ ${t('import_ai')}</button>
+  </div>`;
+}
+
+let curScale=1;
+async function vDrinkDetail(id,scale){
+  const r=await dbGet('drinks',id); if(!r)return go('drinks');
+  curScale=scale||1;
+  const cost=totalCost(r)*curScale, vol=totalVolume(r)*curScale;
+  $('#view').innerHTML=`
+  <button class="iconbtn" onclick="go('drinks')" style="margin-bottom:12px">‹ ${t('nav_drinks')}</button>
+  <div class="row"><div style="font-size:42px">${r.icon||ICONS[r.cat]||'🥤'}</div>
+    <div class="grow"><h1 style="margin:0;font-size:26px">${esc(tn(r.name))}</h1>
+    <div class="note">${esc(r.source||'')}</div></div></div>
+  ${r.notes?`<div class="card flat" style="margin-top:12px;background:var(--surface2);border-style:dashed">💡 ${esc(tn(r.notes))}</div>`:''}
+  <div class="card" style="margin-top:12px">
+    <h3 style="margin-bottom:4px">${t('scale')}</h3>
+    <div class="seg" style="margin:10px 0">
+      ${[0.5,1,2,4,10].map(m=>`<button class="${curScale===m?'on':''}" onclick="vDrinkDetail('${id}',${m})">×${m}</button>`).join('')}
+    </div>
+    <div class="note" style="margin-top:8px">${t('serve_size_label')}: <b>${r.serves?Math.round(r.serves*curScale):curScale} ${t('serve_size_unit')}</b> · ${t('total_volume')}: <b>${fmtG(vol)} ml</b></div>
+  </div>
+  <div class="card">
+    <h3>${t('ingredients')} <span class="note">(${t('cost_est')}: ${cost.toFixed(1)} ฿)</span></h3>
+    <table class="ing">${r.ingredients.map(i=>`<tr>
+      <td>${esc(tn(i.name))}</td>
+      <td>${fmtG(i.amount*curScale)} ${i.unit||'ml'}</td>
+      <td>${((i.cost||0)*curScale).toFixed(1)} ฿</td></tr>`).join('')}</table>
+  </div>
+  <div class="card">
+    <h3>${t('steps')}</h3>
+    ${r.steps.map((s,i)=>`<div class="stepline"><span class="n">${i+1}</span>
+      <div class="grow"><b>${esc(tn(s.t))}</b><div class="note">${esc(tn(s.d))}</div></div>
+      ${s.m?`<span class="tmr">⏱ ${s.m>=60?(Math.round(s.m/6)/10)+' '+t('hr_short'):s.m+' '+t('min_short')}</span>`:''}</div>`).join('')}
+  </div>
+  <button class="btn big" onclick="startBrew('${id}',curScale)">▶ ${t('start_brew')}</button>
+  <div class="row" style="margin-top:12px">
+    <button class="btn ghost grow" onclick="drinkEditor('${id}')">✎ ${t('edit')}</button>
+    <button class="btn ghost grow" onclick="dupDrink('${id}')">⧉ ${t('duplicate')}</button>
+    ${r.seed?'':`<button class="btn ghost grow" style="color:var(--accent)" onclick="delDrink('${id}')">🗑 ${t('delete')}</button>`}
+  </div>`;
+}
+async function dupDrink(id){
+  const r=await dbGet('drinks',id);
+  const c=JSON.parse(JSON.stringify(r)); c.id=uid(); c.seed=false;
+  if(typeof c.name==='object'){c.name={en:c.name.en+' (copy)',th:(c.name.th||c.name.en)+' (copy)'};}else c.name+=' (copy)';
+  await dbPut('drinks',c); toast(t('data_saved')); vDrinkDetail(c.id);
+}
+async function delDrink(id){if(!confirm(t('confirm_del')))return; await dbDel('drinks',id); go('drinks');}
+
+/* ============ Drink editor ============ */
+let ed=null;
+async function drinkEditor(id){
+  ed = id ? JSON.parse(JSON.stringify(await dbGet('drinks',id)))
+          : {id:uid(),icon:'🥤',cat:'coldcoffee',type:'cold',name:'',source:'',notes:'',serves:1,
+             ingredients:[{name:'',amount:0,unit:'ml',cost:0}],steps:[{t:'',d:'',m:0}]};
+  if(id){ed.seed=false; if(typeof ed.name==='object')ed.name=tn(ed.name);
+    if(typeof ed.notes==='object')ed.notes=tn(ed.notes);
+    ed.ingredients.forEach(i=>{if(typeof i.name==='object')i.name=tn(i.name)});
+    ed.steps.forEach(s=>{if(typeof s.t==='object')s.t=tn(s.t); if(typeof s.d==='object')s.d=tn(s.d)});
+  }
+  edRender();
+}
+function edRender(){
+  modal(`<h2>${ed.nameSaved?t('edit'):t('add_drink')}</h2>
+  <label class="f">${t('name')}</label><input id="edName" value="${esc(ed.name)}">
+  <div class="row" style="margin-top:12px">
+    <div class="grow"><label class="f" style="margin-top:0">${t('category')}</label>
+      <select id="edCat">${CATS.map(c=>`<option value="${c}" ${ed.cat===c?'selected':''}>${catName(c)}</option>`).join('')}</select></div>
+    <div class="grow"><label class="f" style="margin-top:0">Icon</label><input id="edIcon" value="${esc(ed.icon||'')}" maxlength="4"></div>
+  </div>
+  <label class="f">Type</label>
+  <select id="edType"><option value="hot" ${ed.type==='hot'?'selected':''}>${t('type_hot')}</option>
+  <option value="cold" ${ed.type==='cold'?'selected':''}>${t('type_cold')}</option></select>
+  <label class="f">${t('serve_size_label')}</label><input id="edServes" type="number" inputmode="numeric" value="${ed.serves||1}">
+  <label class="f">${t('source')}</label><input id="edSrc" value="${esc(ed.source||'')}">
+  <label class="f">${t('notes_opt')}</label><textarea id="edNotes" rows="2">${esc(ed.notes||'')}</textarea>
+  <label class="f">${t('ingredients')}</label>
+  <div id="edIngs">${ed.ingredients.map((i,x)=>`<div class="row" style="margin-bottom:8px">
+    <input class="grow" placeholder="${t('ingredient_name')}" value="${esc(i.name)}" onchange="ed.ingredients[${x}].name=this.value">
+    <input type="number" inputmode="decimal" style="width:72px" placeholder="Amt" value="${i.amount||''}" onchange="ed.ingredients[${x}].amount=+this.value||0">
+    <select style="width:72px" onchange="ed.ingredients[${x}].unit=this.value">
+      ${['ml','shot','tbsp','tsp','cup','oz','slice','g'].map(u=>`<option value="${u}" ${i.unit===u?'selected':''}>${u}</option>`).join('')}</select>
+    <input type="number" inputmode="decimal" style="width:64px" placeholder="฿" value="${i.cost||''}" onchange="ed.ingredients[${x}].cost=+this.value||0">
+    <button class="del-x" onclick="ed.ingredients.splice(${x},1);edSync();edRender()">✕</button></div>`).join('')}</div>
+  <button class="btn ghost" onclick="edSync();ed.ingredients.push({name:'',amount:0,unit:'ml',cost:0});edRender()">${t('add_ing')}</button>
+  <label class="f">${t('steps')}</label>
+  <div id="edSteps">${ed.steps.map((s,x)=>`<div class="card flat" style="padding:10px;margin-bottom:8px">
+    <div class="row"><b style="color:var(--accent)">${x+1}</b>
+      <input class="grow" placeholder="${t('step_title')}" value="${esc(s.t)}" onchange="ed.steps[${x}].t=this.value">
+      <input type="number" inputmode="numeric" style="width:74px" placeholder="${t('minutes')}" value="${s.m||''}" onchange="ed.steps[${x}].m=+this.value||0">
+      <button class="del-x" onclick="ed.steps.splice(${x},1);edSync();edRender()">✕</button></div>
+    <input style="margin-top:8px" placeholder="${t('step_desc')}" value="${esc(s.d)}" onchange="ed.steps[${x}].d=this.value"></div>`).join('')}</div>
+  <button class="btn ghost" onclick="edSync();ed.steps.push({t:'',d:'',m:0});edRender()">${t('add_step')}</button>
+  <div class="row" style="margin-top:20px">
+    <button class="btn ghost grow" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn grow" onclick="edSave()">${t('save')}</button>
+  </div>`);
+}
+function edSync(){
+  ed.name=$('#edName')?.value??ed.name; ed.cat=$('#edCat')?.value??ed.cat;
+  ed.icon=$('#edIcon')?.value??ed.icon; ed.type=$('#edType')?.value??ed.type;
+  ed.source=$('#edSrc')?.value??ed.source; ed.notes=$('#edNotes')?.value??ed.notes;
+  ed.serves=+$('#edServes')?.value||1;
+}
+async function edSave(){
+  edSync();
+  if(!ed.name.trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อเมนู');
+  ed.ingredients=ed.ingredients.filter(i=>String(i.name).trim());
+  ed.steps=ed.steps.filter(s=>String(s.t).trim());
+  await dbPut('drinks',ed); closeModal(); toast(t('data_saved')); vDrinkDetail(ed.id);
+}
+
+/* ============ AI Import ============ */
+const AI_SCHEMA=`{
+  "name": "Drink name",
+  "cat": "hotcoffee | coldcoffee | tea | smoothie | soda | special",
+  "type": "hot | cold",
+  "icon": "one emoji",
+  "serves": 1,
+  "source": "original source / URL",
+  "notes": "key tips in one or two sentences",
+  "ingredients": [ {"name": "Espresso shot", "amount": 2, "unit": "shot", "cost": 8}, {"name": "Milk", "amount": 200, "unit": "ml", "cost": 6} ],
+  "steps": [ {"t": "Step title", "d": "What to do", "m": 0} ]
+}`;
+function aiPrompt(){return `You are a drink-recipe structuring assistant for a cafe app. Convert the drink recipe into EXACTLY this JSON format and output ONLY the JSON (no markdown, no explanation):
+
+${AI_SCHEMA}
+
+Rules:
+- ALL liquid amounts in ml (convert: 1 cup = 240 ml, 1 oz = 30 ml, 1 shot espresso = 30 ml, 1 tbsp = 15 ml, 1 tsp = 5 ml).
+- "m" = timer minutes for that step (0 if no waiting).
+- "cost" = estimated ingredient cost in Thai Baht (฿) per the amount listed. Be reasonable for a Thai cafe.
+- If the recipe mentions ice, include it as an ingredient with unit "cup".
+- Keep step titles short; put details in "d".
+- Respond in ${LANG==='th'?'Thai (keep coffee terms like espresso, shot, latte art in English)':'English'}.
+
+Here is the drink recipe:
+`;}
+function aiImport(){
+  modal(`<h2>${t('ai_title')}</h2>
+  <div class="note" style="white-space:pre-line;margin-bottom:12px">${t('ai_how')}</div>
+  <button class="btn" onclick="navigator.clipboard.writeText(aiPrompt()).then(()=>toast(t('copied')))">⧉ ${t('copy_prompt')}</button>
+  <details style="margin-top:10px"><summary class="note">Preview prompt</summary><pre class="code">${esc(aiPrompt())}</pre></details>
+  <label class="f">JSON</label>
+  <textarea id="aiJson" rows="7" placeholder="${t('paste_json')}"></textarea>
+  <div class="row" style="margin-top:16px">
+    <button class="btn ghost grow" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn grow" onclick="aiDoImport()">${t('import_btn')}</button>
+  </div>`);
+}
+async function aiDoImport(){
+  let txt=$('#aiJson').value.trim().replace(/^```json?/i,'').replace(/```$/,'').trim();
+  try{
+    const j=JSON.parse(txt);
+    const r={id:uid(),seed:false,icon:j.icon||'🥤',cat:CATS.includes(j.cat)?j.cat:'coldcoffee',
+      type:j.type==='hot'?'hot':'cold',name:String(j.name||'Imported drink'),serves:j.serves||1,
+      source:String(j.source||''),notes:String(j.notes||''),
+      ingredients:(j.ingredients||[]).map(i=>({name:String(i.name||''),amount:+i.amount||0,unit:String(i.unit||'ml'),cost:+i.cost||0})),
+      steps:(j.steps||[]).map(s=>({t:String(s.t||''),d:String(s.d||''),m:+s.m||0}))};
+    if(!r.ingredients.length||!r.steps.length)throw 0;
+    await dbPut('drinks',r); closeModal(); toast(t('data_saved')); vDrinkDetail(r.id);
+  }catch(e){toast(t('invalid_json'));}
+}
+
+/* ============ Guided Brew session ============ */
+async function startBrew(id,scale){
+  const r=await dbGet('drinks',id);
+  session={drinkId:id,drinkName:tn(r.name),scale:scale||1,step:0,startedAt:Date.now(),
+           stepStartedAt:Date.now(),endsAt:null,paused:false,pausedRemain:0,acknowledged:false};
+  const m=r.steps[0]?.m||0;
+  session.endsAt=m?Date.now()+m*60000:null;
+  await kvSet('session',session);
+  TAB='brew'; render();
+}
+async function vBrew(){
+  session = session || await kvGet('session');
+  if(!session){
+    $('#view').innerHTML=`<h1>${t('nav_brew')}</h1>
+    <div class="empty"><div class="big">☕</div><h3>${t('brew_none')}</h3>
+    <div class="note" style="max-width:340px;margin:8px auto 20px">${t('brew_none_sub')}</div>
+    <button class="btn" onclick="go('drinks')">${t('browse_drinks')}</button></div>`;
+    stopTick(); releaseWake(); return;
+  }
+  const r=await dbGet('drinks',session.drinkId);
+  if(!r){session=null;await kvSet('session',null);return vBrew();}
+  const s=r.steps[session.step], last=session.step>=r.steps.length-1;
+  $('#view').innerHTML=`
+  <div class="note">${esc(session.drinkName)} ${session.scale!==1?`· ×${session.scale} ${t('scaled')}`:''}</div>
+  <h1 style="font-size:22px;margin:2px 0 4px">${t('step')} ${session.step+1} ${t('of')} ${r.steps.length}: ${esc(tn(s.t))}</h1>
+  <div class="progressbar"><i style="width:${(session.step)/r.steps.length*100}%"></i></div>
+  <div class="card">
+    <div style="font-size:17px">${esc(tn(s.d))}</div>
+    ${stepIngHint(r,s)}
+  </div>
+  <div class="card" style="text-align:center">
+    ${s.m?`<div class="timer-display" id="tmr">--:--</div>
+      <div class="note" id="tmrNote"></div>
+      <div class="row" style="margin-top:12px;justify-content:center">
+        <button class="btn ghost" onclick="addTime(5)">${t('add_5m')}</button>
+        <button class="btn ghost" id="btnPause" onclick="pauseTimer()">${session.paused?t('resume'):t('pause')}</button>
+      </div>`
+     :`<div style="font-size:40px;margin:6px 0">☕</div><div class="note">${t('no_timer')}</div>`}
+  </div>
+  <button class="btn big ${last?'warn':''}" onclick="${last?'finishBrew()':'nextStep()'}">${last?'✓ '+t('finish_brew'):t('next_step')+' ›'}</button>
+  <div class="row" style="margin-top:12px">
+    <button class="btn ghost grow" onclick="vDrinkDetail('${r.id}',${session.scale})">${t('nav_drinks')}: ${t('ingredients')}</button>
+    <button class="btn ghost" style="color:var(--accent)" onclick="abortBrew()">✕ ${t('abort')}</button>
+  </div>
+  <div class="note" style="text-align:center;margin-top:14px">🔆 ${t('keep_awake')}</div>`;
+  if(s.m){startTick();}else{stopTick();}
+  acquireWake();
+}
+function stepIngHint(r,s){
+  const words=(tn(s.t)+' '+tn(s.d)).toLowerCase();
+  const hits=r.ingredients.filter(i=>{
+    const n=tn(i.name).toLowerCase().split(/[\s(（]/)[0];
+    return n.length>2&&words.includes(n);
+  });
+  if(!hits.length)return '';
+  return `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)" class="note">
+    ${hits.map(i=>`<b>${esc(tn(i.name))}</b> ${fmtG(i.amount*session.scale)} ${i.unit||'ml'}`).join(' · ')}</div>`;
+}
+function startTick(){stopTick(); tick(); tickInt=setInterval(tick,500);}
+function stopTick(){if(tickInt){clearInterval(tickInt);tickInt=null;}}
+function tick(){
+  if(!session||!session.endsAt)return;
+  const el=$('#tmr'); if(!el)return;
+  let remain=session.paused?session.pausedRemain:session.endsAt-Date.now();
+  const over=remain<0; const abs=Math.abs(remain);
+  const m=Math.floor(abs/60000), sec=Math.floor(abs%60000/1000);
+  const hh=m>=60?Math.floor(m/60)+':'+String(m%60).padStart(2,'0')+':'+String(sec).padStart(2,'0')
+             :m+':'+String(sec).padStart(2,'0');
+  el.textContent=(over?'+':'')+hh;
+  el.classList.toggle('done',over);
+  $('#tmrNote').textContent=over?t('elapsed')+' — '+t('step_done'):'';
+  if(over&&!session.acknowledged){session.acknowledged=true;kvSet('session',session);ringBell();}
+}
+function addTime(min){
+  if(!session.endsAt)return;
+  if(session.paused)session.pausedRemain+=min*60000; else session.endsAt+=min*60000;
+  session.acknowledged=false; kvSet('session',session); tick();
+}
+function pauseTimer(){
+  if(session.paused){session.endsAt=Date.now()+session.pausedRemain;session.paused=false;}
+  else{session.pausedRemain=session.endsAt-Date.now();session.paused=true;}
+  kvSet('session',session); $('#btnPause').textContent=session.paused?t('resume'):t('pause');
+}
+async function nextStep(){
+  const r=await dbGet('drinks',session.drinkId);
+  session.step++; session.stepStartedAt=Date.now(); session.acknowledged=false; session.paused=false;
+  const m=r.steps[session.step]?.m||0;
+  session.endsAt=m?Date.now()+m*60000:null;
+  await kvSet('session',session); vBrew();
+}
+async function abortBrew(){
+  if(!confirm(LANG==='en'?'Abort this brew?':'ยกเลิกการชงครั้งนี้?'))return;
+  session=null; await kvSet('session',null); stopTick(); releaseWake(); vBrew();
+}
+async function finishBrew(){
+  const fin={drinkId:session.drinkId,drinkName:session.drinkName,scale:session.scale,startedAt:session.startedAt};
+  session=null; await kvSet('session',null); stopTick(); releaseWake();
+  logEditor(null,fin);
+}
+
+/* ============ Bell & Wake Lock ============ */
+let actx;
+function primeAudio(){
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+  }catch(e){}
+}
+document.addEventListener('click',primeAudio,{capture:true});
+document.addEventListener('touchend',primeAudio,{capture:true});
+function ringBell(){
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+    let n=0;
+    const ding=()=>{
+      if(n++>5)return;
+      [880,1318].forEach((f,i)=>{
+        const o=actx.createOscillator(),g=actx.createGain();
+        o.frequency.value=f; o.type='sine'; o.connect(g); g.connect(actx.destination);
+        const t0=actx.currentTime+i*.05;
+        g.gain.setValueAtTime(.001,t0); g.gain.exponentialRampToValueAtTime(.4,t0+.02);
+        g.gain.exponentialRampToValueAtTime(.001,t0+.9); o.start(t0); o.stop(t0+1);
+      });
+      setTimeout(ding,1400);
+    };
+    ding();
+  }catch(e){}
+  if(navigator.vibrate)navigator.vibrate([300,150,300,150,500]);
+}
+async function acquireWake(){
+  try{ if(!wakeLock&&'wakeLock' in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){}
+}
+function releaseWake(){ try{wakeLock?.release(); wakeLock=null;}catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&session)acquireWake(); });
+
+/* ============ Tools ============ */
+let TOOL=null;
+function vTools(){
+  if(TOOL)return TOOLS[TOOL]();
+  $('#view').innerHTML=`<h1>${t('tools_title')}</h1>
+  <div class="toolgrid">
+    ${[['cost','💰','t_cost'],['scale','📐','t_scale'],['temp','🌡️','t_temp'],['units','🔄','t_units'],['dilution','🧊','t_dilution']]
+    .map(([k,em,lb])=>`<div class="card" onclick="TOOL='${k}';vTools()"><div class="em">${em}</div><h3>${t(lb)}</h3></div>`).join('')}
+  </div>`;
+}
+const toolBack=`<button class="iconbtn" onclick="TOOL=null;vTools()" style="margin-bottom:12px">‹ Tools</button>`;
+
+const TOOLS={
+ cost(){
+  let costRows=[['Espresso shot',2,'shot',8],['Milk',200,'ml',6],['Ice',1,'cup',1],['Syrup',15,'ml',0.5]];
+  let sellPrice=50;
+  function render(){let tot=0;
+    $('#view').innerHTML=`${toolBack}<h1>${t('t_cost')}</h1>
+    <div class="card">
+      ${costRows.map((r,i)=>`<div class="row" style="margin-bottom:8px">
+        <input class="grow" value="${esc(r[0])}" onchange="costRows[${i}][0]=this.value">
+        <input type="number" inputmode="decimal" style="width:64px" value="${r[1]}" oninput="costRows[${i}][1]=+this.value||0;renderCost()">
+        <select style="width:64px" onchange="costRows[${i}][2]=this.value;renderCost()">
+          ${['ml','shot','tbsp','tsp','cup','oz','g','slice'].map(u=>`<option value="${u}" ${r[2]===u?'selected':''}>${u}</option>`).join('')}</select>
+        <input type="number" inputmode="decimal" style="width:64px" placeholder="฿" value="${r[3]}" oninput="costRows[${i}][3]=+this.value||0;renderCost()">
+        <button class="del-x" onclick="costRows.splice(${i},1);renderCost()">✕</button></div>`).join('')}
+      <button class="btn ghost" style="margin-top:8px" onclick="costRows.push(['',0,'ml',0]);renderCost()">${t('add_row')}</button>
+      <div class="result-box"><div class="note">${t('total_cost')}</div><div class="v" id="costTotal"></div></div>
+      <label class="f">${t('sell_price')}</label>
+      <input id="costSell" type="number" inputmode="decimal" value="${sellPrice}" oninput="sellPrice=+this.value||0;renderCost()">
+      <div class="result-box"><div class="note">${t('profit')}</div><div class="v" id="costProfit"></div>
+      <div class="note" id="costMargin"></div></div>
+    </div>`;
+    tot=costRows.reduce((a,r)=>a+(r[1]||0)*(r[3]||0),0);
+    const profit=sellPrice-tot, margin=tot?Math.round(profit/sellPrice*100):0;
+    $('#costTotal').textContent=tot.toFixed(1)+' ฿';
+    $('#costProfit').textContent=profit.toFixed(1)+' ฿';
+    $('#costMargin').textContent=t('margin_pct')+': '+margin+'%';
+  }
+  renderCost=render; render();
+ },
+ scale(){
+  $('#view').innerHTML=`${toolBack}<h1>${t('t_scale')}</h1>
+  <div class="card">
+    <label class="f" style="margin-top:0">${t('from_servings')}</label>
+    <input id="scFrom" type="number" inputmode="decimal" value="1" oninput="scCalc()">
+    <label class="f">${t('to_servings')}</label>
+    <input id="scTo" type="number" inputmode="decimal" value="10" oninput="scCalc()">
+    <div class="result-box"><div class="note">${t('scale_result')}</div><div class="v" id="scOut"></div></div>
+  </div>`;
+  scCalc();
+ },
+ temp(){
+  const temps={espresso:{range:'90-96°C',note:{en:'Too hot = bitter. Too cold = sour. 93°C ideal for most beans.',th:'ร้อนไป = ขม เย็นไป = เปรี้ยว 93°C เหมาะสุด'}},
+              pour_over:{range:'88-94°C',note:{en:'Light roast = hotter (94°C). Dark roast = cooler (88°C).',th:'คั่วอ่อน = ร้อนกว่า (94°C) คั่วเข้ม = เย็นกว่า (88°C)'}},
+              cold_brew:{range:'Room temp (steep 12-24h)',note:{en:'No heat! Steep coarse grounds in cold water 12-24h. Smooth & low acid.',th:'ไม่ใช้ความร้อน! แช่กาแฟบดหยาบในน้ำอุณหภูมิห้อง 12-24 ชม. นุ่มนวล กรดต่ำ'}},
+              matcha:{range:'75-80°C',note:{en:'Never boiling! Boiling water burns matcha → bitter. Whisk in W motion.',th:'ห้ามใช้น้ำเดือด! น้ำเดือดทำให้มัทฉะไหม้ → ขม ตีเป็นตัว W'}},
+              thai_tea:{range:'95-100°C (steep)',note:{en:'Use boiling water for full extraction. Steep 5-7 min for strong color + flavor.',th:'ใช้น้ำเดือดเพื่อสกัดเต็มที่ แช่ 5-7 นาทีให้สีเข้มรสจัด'}},
+              milk_steaming:{range:'60-65°C',note:{en:'Over 70°C = scalded milk, tastes burnt. 60-65°C = sweetest milk flavor.',th:'เกิน 70°C = นมไหม้ รสไหม้ 60-65°C = รสนมหอมหวานที่สุด'}},
+              green_tea:{range:'70-80°C',note:{en:'Green tea is delicate. Hotter = more bitter. 75°C for sencha.',th:'ชาเขียวบอบบาง ยิ่งร้อนยิ่งขม 75°C สำหรับ sencha'}},
+              herbal_tea:{range:'95-100°C',note:{en:'Herbal teas need near-boiling water to extract fully. Steep 5-10 min.',th:'ชาสมุนไพรต้องใช้น้ำเกือบเดือดเพื่อสกัดเต็มที่ แช่ 5-10 นาที'}}};
+  $('#view').innerHTML=`${toolBack}<h1>${t('t_temp')}</h1>
+  ${Object.entries(temps).map(([k,v])=>`<div class="card flat" style="background:var(--surface2);margin-bottom:10px;padding:12px">
+    <div class="row"><b>${k.replace(/_/g,' ')}</b><span class="chip on" style="margin-left:auto">${v.range}</span></div>
+    <div class="note" style="margin-top:6px">${tn(v.note)}</div></div>`).join('')}`;
+ },
+ units(){
+  $('#view').innerHTML=`${toolBack}<h1>${t('t_units')}</h1>
+  <div class="card">
+    <div class="row" style="margin-bottom:12px">
+      <div class="grow"><label class="f" style="margin-top:0">${t('u_amount')}</label><input id="uAmt" type="number" inputmode="decimal" value="1" oninput="uCalc()"></div>
+      <div class="grow"><label class="f" style="margin-top:0">${t('u_from')}</label>
+        <select id="uUnit" onchange="uCalc()"><option value="oz">oz</option><option value="shot">shot (espresso)</option><option value="tbsp">tbsp</option><option value="tsp">tsp</option><option value="cup">cup</option><option value="ml">ml</option><option value="liter">L</option></select></div>
+    </div>
+    <div class="result-box"><div class="note">${t('u_to')} ml</div><div class="v" id="uOut"></div></div>
+  </div>
+  <div class="card">
+    <label class="f" style="margin-top:0">Quick reference</label>
+    <div class="note" style="line-height:2">1 shot = 30 ml · 1 oz = 30 ml · 1 cup = 240 ml · 1 tbsp = 15 ml · 1 tsp = 5 ml · 1 L = 1000 ml</div>
+  </div>`;
+  uCalc();
+ },
+ dilution(){
+  $('#view').innerHTML=`${toolBack}<h1>${t('t_dilution')}</h1>
+  <div class="card">
+    <label class="f" style="margin-top:0">${t('orig_vol')}</label>
+    <input id="dilVol" type="number" inputmode="decimal" value="300" oninput="dilCalc()">
+    <label class="f">${t('ice_level')}</label>
+    <div class="seg" style="margin-bottom:8px">
+      <button id="dilNone" onclick="dilSet('none')">${t('no_ice')}</button>
+      <button id="dilReg" class="on" onclick="dilSet('regular')">${t('regular_ice')}</button>
+      <button id="dilExtra" onclick="dilSet('extra')">${t('extra_ice')}</button></div>
+    <div class="result-box">
+      <div class="note">${t('adjusted_vol')}</div><div class="v" id="dilAdj"></div>
+      <div class="note">${t('ice_to_add')}</div><div class="v" id="dilIce" style="font-size:24px"></div>
+    </div>
+  </div>`;
+  dilLevel='regular'; dilCalc();
+ }
+};
+let dilLevel='regular';
+function dilSet(l){dilLevel=l;$('#dilNone').classList.toggle('on',l==='none');$('#dilReg').classList.toggle('on',l==='regular');$('#dilExtra').classList.toggle('on',l==='extra');dilCalc();}
+function dilCalc(){
+  const vol=+$('#dilVol').value||0;
+  const ratios={none:{adj:1,ice:0},regular:{adj:.7,ice:.3},extra:{adj:.5,ice:.5}};
+  const r=ratios[dilLevel];
+  $('#dilAdj').textContent=Math.round(vol*r.adj)+' ml';
+  $('#dilIce').textContent=Math.round(vol*r.ice)+' ml (≈'+(Math.round(vol*r.ice/30))+' cubes)';
+}
+function scCalc(){const f=+$('#scFrom').value||0,t=+$('#scTo').value||0;$('#scOut').textContent=f?'× '+(Math.round(t/f*100)/100):'—';}
+function uCalc(){const a=+$('#uAmt').value||0,u=$('#uUnit').value;
+  const ml=u==='oz'||u==='shot'?a*30:u==='tbsp'?a*15:u==='tsp'?a*5:u==='cup'?a*240:u==='liter'?a*1000:a;
+  $('#uOut').textContent=ml+' ml';}
+
+/* ============ Stock tracker ============ */
+async function vStock(){
+  const items=(await dbAll('stock')).sort((a,b)=>a.name?.localeCompare?.(b.name)||0);
+  $('#view').innerHTML=`<h1>${t('stock_title')}</h1><div class="tagline">${t('stock_sub')}</div>
+  <button class="btn big" onclick="stockEditor()">📦 ${t('stock_add')}</button>
+  <div class="card" style="margin-top:14px">
+    ${items.map(s=>{const low=s.min&&s.qty<=s.min;
+      return `<div class="feeditem"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
+      <div class="grow"><b>${esc(s.name)}</b> ${low?`<span class="badge" style="background:var(--accent)">${t('low_stock')}</span>`:''}
+        <div class="note">${s.qty} ${s.unit||''} ${s.min?`· Min: ${s.min} ${s.unit||''}`:''}</div>
+        ${s.note?`<div class="note">${esc(s.note)}</div>`:''}
+        <div class="note" style="font-size:11px">${s.updated?new Date(s.updated).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div></div>
+      <button class="del-x" onclick="delStock('${s.id}')">✕</button></div>`}).join('')
+     || `<div class="empty"><div class="big">📦</div>${t('no_stock')}</div>`}
+  </div>`;
+}
+function stockEditor(id){
+  const s=id?dbGet('stock',id):null;
+  modal(`<h2>${t('stock_add')}</h2>
+  <label class="f">${t('stock_item')}</label><input id="stName" value="${esc(s?.name||'')}">
+  <div class="row" style="margin-top:4px">
+    <div class="grow"><label class="f" style="margin-top:0">${t('stock_qty')}</label><input id="stQty" type="number" inputmode="decimal" value="${s?.qty||0}"></div>
+    <div class="grow"><label class="f" style="margin-top:0">${t('stock_unit')}</label><input id="stUnit" value="${esc(s?.unit||'')}" placeholder="ml, g, bags..."></div>
+  </div>
+  <label class="f">${t('stock_min')}</label><input id="stMin" type="number" inputmode="decimal" value="${s?.min||''}">
+  <label class="f">${t('stock_note')}</label><input id="stNote" value="${esc(s?.note||'')}">
+  <div class="row" style="margin-top:18px">
+    <button class="btn ghost grow" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn grow" onclick="saveStock('${id||''}')">${t('save')}</button>
+  </div>`);
+  window.saveStock=async(existingId)=>{
+    const item={id:existingId||uid(),name:$('#stName')?.value, qty:+$('#stQty')?.value||0,
+      unit:$('#stUnit')?.value, min:+$('#stMin')?.value||0, note:$('#stNote')?.value, updated:Date.now()};
+    if(!item.name.trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อรายการ');
+    await dbPut('stock',item); closeModal(); toast(t('data_saved')); vStock();
+  };
+  if(id) s.then(r=>{if(r){$('#stName').value=r.name||'';$('#stQty').value=r.qty;}});
+}
+async function delStock(id){if(!confirm(t('confirm_del')))return; await dbDel('stock',id); vStock();}
+
+/* ============ Brew Log ============ */
+let logPhotos=[];
+async function vLog(){
+  const logs=(await dbAll('logs')).sort((a,b)=>b.at-a.at);
+  $('#view').innerHTML=`<h1>${t('log_title')}</h1><div class="tagline">${t('log_sub')}</div>
+  <button class="btn big" onclick="logEditor()">＋ ${t('add_log')}</button>
+  <div style="margin-top:14px">
+  ${logs.map(l=>`<div class="card">
+    <div class="row"><div class="grow"><h3 style="margin:0;font-size:17px">${esc(l.drinkName)}</h3>
+      <div class="note">${new Date(l.at).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}${l.scale&&l.scale!==1?' · ×'+l.scale:''}</div></div>
+      <div style="color:var(--gold);font-size:16px;white-space:nowrap">${'★'.repeat(l.rating||0)}<span style="opacity:.25">${'★'.repeat(5-(l.rating||0))}</span></div>
+      <button class="del-x" onclick="delLog('${l.id}')">✕</button></div>
+    ${l.notes?`<div style="margin-top:8px;font-size:15px">${esc(l.notes)}</div>`:''}
+    ${l.photos?.length?`<div class="photo-grid">${l.photos.map(p=>`<img src="${p}" onclick="viewPhoto('${l.id}',${l.photos.indexOf(p)})">`).join('')}</div>`:''}
+  </div>`).join('') || `<div class="empty"><div class="big">📓</div>${t('no_logs')}</div>`}
+  </div>`;
+}
+async function viewPhoto(logId,idx){
+  const l=await dbGet('logs',logId);
+  modal(`<img src="${l.photos[idx]}" style="width:100%;border-radius:14px">
+  <button class="btn ghost big" style="margin-top:12px" onclick="closeModal()">${t('close')}</button>`);
+}
+async function logEditor(id,prefill){
+  drinks=await dbAll('drinks');
+  const l=id?await dbGet('logs',id):{id:uid(),at:Date.now(),drinkId:prefill?.drinkId||'',drinkName:prefill?.drinkName||'',scale:prefill?.scale||1,rating:0,notes:'',photos:[]};
+  logPhotos=[...(l.photos||[])]; let rating=l.rating||0;
+  window._logRate=v=>{rating=v;document.querySelectorAll('.stars span').forEach((s,i)=>s.classList.toggle('on',i<v));};
+  window._logSave=async()=>{
+    l.drinkId=$('#lgRec').value; l.drinkName=$('#lgRec').selectedOptions[0]?.dataset.name||$('#lgRec').selectedOptions[0]?.text||'';
+    l.rating=rating; l.notes=$('#lgNotes').value; l.photos=logPhotos;
+    await dbPut('logs',l); closeModal();
+    toast(prefill?t('brew_saved'):t('data_saved')); TAB='log'; render();
+  };
+  modal(`<h2>${t('add_log')} ${prefill?'🎉':''}</h2>
+  <label class="f">${t('log_drink')}</label>
+  <select id="lgRec">${drinks.map(r=>`<option value="${r.id}" data-name="${esc(tn(r.name))}" ${r.id===l.drinkId?'selected':''}>${esc(tn(r.name))}</option>`).join('')}
+    <option value="" ${!l.drinkId?'selected':''}>${LANG==='en'?'(other)':'(อื่นๆ)'}</option></select>
+  <label class="f">${t('log_rating')}</label>
+  <div class="stars">${[1,2,3,4,5].map(i=>`<span class="${i<=rating?'on':''}" onclick="_logRate(${i})">★</span>`).join('')}</div>
+  <label class="f">${t('log_notes')}</label><textarea id="lgNotes" rows="3">${esc(l.notes||'')}</textarea>
+  <label class="f">${t('log_photos')}</label>
+  <div class="photo-grid" id="lgPhotos"></div>
+  <input type="file" id="lgFile" accept="image/*" style="display:none" onchange="addLogPhoto(this)">
+  <div class="row" style="margin-top:18px">
+    <button class="btn ghost grow" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn grow" onclick="_logSave()">${t('save')}</button>
+  </div>`);
+  renderLogPhotos();
+}
+function renderLogPhotos(){
+  $('#lgPhotos').innerHTML=logPhotos.map((p,i)=>`<div style="position:relative"><img src="${p}">
+    <button class="del-x" style="position:absolute;top:-6px;right:-6px;background:var(--surface);border-radius:50%;border:1px solid var(--line)" onclick="logPhotos.splice(${i},1);renderLogPhotos()">✕</button></div>`).join('')
+  +(logPhotos.length<3?`<button class="addph" onclick="$('#lgFile').click()">＋</button>`:'');
+}
+function addLogPhoto(input){
+  const file=input.files[0]; if(!file)return;
+  const img=new Image(), rd=new FileReader();
+  rd.onload=()=>{img.src=rd.result};
+  img.onload=()=>{
+    const MAX=900, sc=Math.min(1,MAX/Math.max(img.width,img.height));
+    const c=document.createElement('canvas'); c.width=img.width*sc; c.height=img.height*sc;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    logPhotos.push(c.toDataURL('image/jpeg',.72)); renderLogPhotos();
+  };
+  rd.readAsDataURL(file); input.value='';
+}
+async function delLog(id){if(!confirm(t('confirm_del')))return; await dbDel('logs',id); vLog();}
+
+/* ============ Settings / Backup ============ */
+async function openSettings(){
+  const lb=await kvGet('lastBackup');
+  modal(`<h2>${t('settings')}</h2>
+  <div class="note" style="margin-bottom:14px">${t('export_note')}</div>
+  <button class="btn big" onclick="exportData()">⬇ ${t('export_data')}</button>
+  <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
+  <button class="btn ghost big" style="margin-top:10px" onclick="$('#impFile').click()">⬆ ${t('import_data')}</button>
+  <div class="note" style="margin-top:14px"><b>${t('last_backup')}:</b> ${lb||t('never_backup')}<br>${t('auto_backup_note')}</div>
+  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.0 · Made with ☕ for baristas</div>
+  <button class="btn ghost big" style="margin-top:10px" onclick="closeModal()">${t('close')}</button>`);
+}
+async function gatherBackup(){
+  return {app:'brew-center',version:1,exportedAt:new Date().toISOString(),
+    drinks:await dbAll('drinks'),logs:await dbAll('logs'),stock:await dbAll('stock')};
+}
+function downloadBackup(data){
+  const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='brew-center-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+async function exportData(){
+  downloadBackup(await gatherBackup());
+  await kvSet('lastBackup',dayStr()); toast(t('data_saved'));
+}
+async function importData(input){
+  const file=input.files[0]; if(!file)return;
+  if(!confirm(t('import_warn')))return void(input.value='');
+  try{
+    const j=JSON.parse(await file.text());
+    if(j.app!=='brew-center')throw 0;
+    await dbClear('drinks'); await dbClear('logs'); await dbClear('stock');
+    for(const r of j.drinks||[])await dbPut('drinks',r);
+    for(const l of j.logs||[])await dbPut('logs',l);
+    for(const s of j.stock||[])await dbPut('stock',s);
+    closeModal(); toast(t('data_saved')); render();
+  }catch(e){toast(t('invalid_json'));}
+  input.value='';
+}
+
+/* ============ Auto daily backup ============ */
+function dayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+let backupDue=false;
+async function runAutoBackup(){
+  if(!backupDue)return; backupDue=false;
+  const data=await gatherBackup();
+  if(!(data.logs.length||data.stock.length||data.drinks.some(r=>!r.seed)))return;
+  downloadBackup(data);
+  await kvSet('lastBackup',dayStr()); toast(t('auto_backup_done'));
+}
+function armAutoBackup(){
+  const h=()=>{document.removeEventListener('click',h,true);document.removeEventListener('touchend',h,true);runAutoBackup();};
+  document.addEventListener('click',h,true);
+  document.addEventListener('touchend',h,true);
+}
+
+/* ============ Help: User Guide & Changelog ============ */
+const GUIDE=[
+ {icon:'📚',t:{en:'Drink Menu',th:'เมนูเครื่องดื่ม'},d:{en:'Browse, search and filter drinks by category. Tap one to open. Scale servings with ×0.5–×10. Add drinks with ＋ or import with ✦ AI.',th:'ดู ค้นหา และกรองเครื่องดื่มตามหมวด แตะเพื่อเปิด ปรับจำนวนเสิร์ฟด้วย ×0.5–×10 เพิ่มเมนูด้วยปุ่ม ＋ หรือ Import ด้วย ✦ AI'}},
+ {icon:'✦',t:{en:'Import with AI',th:'Import ด้วย AI'},d:{en:'Tap ✦ Import with AI, copy the prompt, and paste it into any AI chat with a drink recipe. Paste the JSON back — the drink is added with all amounts in ml.',th:'กด ✦ Import ด้วย AI แล้วคัดลอก prompt ไปวางในแชต AI พร้อมสูตรเครื่องดื่ม เอา JSON ที่ AI ตอบมาวาง เมนูจะถูกเพิ่มพร้อมหน่วยเป็น มล.'}},
+ {icon:'☕',t:{en:'Brew Mode',th:'โหมดเริ่มชง'},d:{en:'Open a drink and tap ▶ Start Brewing. Step-by-step guidance with timers. Bell rings when time is up. Pause, +5 min or skip. Works even if screen sleeps — resume anytime.',th:'เปิดเมนูแล้วกด ▶ เริ่มชง นำทางทีละขั้นพร้อมจับเวลา เสียงเตือนเมื่อครบเวลา ใช้ปุ่มหยุดพัก +5 นาที หรือข้ามได้ ทำงานแม้จอดับ — กลับมาทำต่อได้ทุกเมื่อ'}},
+ {icon:'🧰',t:{en:'Tools',th:'เครื่องมือ'},d:{en:'Five barista tools: Cost & Margin Calculator, Serving Scaler, Brew Temperature Guide, Unit Converter, and Ice/Dilution Calculator.',th:'เครื่องมือ 5 ตัว: คำนวณต้นทุน & กำไร, ปรับขนาดเสิร์ฟ, คู่มืออุณหภูมิการชง, แปลงหน่วย, และคำนวณน้ำแข็ง'}},
+ {icon:'📦',t:{en:'Stock Tracker',th:'ตัวติดตามสต็อก'},d:{en:'Track ingredient inventory with min alerts. Know when to reorder coffee beans, syrups, milk.',th:'ติดตามสต็อกวัตถุดิบพร้อมแจ้งเตือนเมื่อใกล้หมด รู้ว่าเมื่อไหร่ต้องสั่งกาแฟ ไซรัป นมเพิ่ม'}},
+ {icon:'📓',t:{en:'Brew Log',th:'สมุดบันทึกการชง'},d:{en:'Record each brew with a 1–5 star rating, notes, and up to 3 photos. Log opens automatically after finishing a brew.',th:'บันทึกการชงแต่ละครั้งด้วยดาว 1–5 โน้ต และรูปสูงสุด 3 รูป หน้าบันทึกจะเปิดให้อัตโนมัติหลังชงเสร็จ'}},
+ {icon:'💾',t:{en:'Backup & Data',th:'สำรองข้อมูล'},d:{en:'Data lives on your device only. Export backup file via ⚙, or Import to restore. Automatic daily backup too.',th:'ข้อมูลอยู่ในเครื่องนี้เท่านั้น กด ⚙ เพื่อ Export ไฟล์สำรอง หรือ Import เพื่อกู้คืน มี backup อัตโนมัติทุกวันด้วย'}},
+ {icon:'🌐',t:{en:'Language, Theme & Install',th:'ภาษา ธีม และติดตั้ง'},d:{en:'Switch EN/TH and light/dark mode anytime. Add to home screen for full-screen offline use like a real app.',th:'สลับภาษาและโหมดสว่าง/มืดได้ทุกเมื่อ เพิ่มลงหน้าจอโฮมเพื่อใช้เต็มจอแบบออฟไลน์เหมือนแอปจริง'}},
+];
+const CHANGELOG=[
+ {v:'1.0',d:'2026-06-06',c:[{en:'First release: drink menu, brew mode with timers, 5 barista tools, stock tracker, brew log, EN/TH, dark mode, offline, backup & restore.',th:'เวอร์ชันแรก: เมนูเครื่องดื่ม, โหมดชงพร้อมจับเวลา, เครื่องมือ 5 ตัว, ตัวติดตามสต็อก, สมุดบันทึกการชง, 2 ภาษา EN/TH, โหมดมืด, ใช้ออฟไลน์, สำรอง/กู้ข้อมูล'}]},
+];
+let helpTab='guide';
+function openHelp(tab){
+  if(tab)helpTab=tab;
+  const guide=GUIDE.map(g=>`<div class="card flat" style="background:var(--surface2);margin-bottom:10px;padding:12px">
+    <b>${g.icon} ${esc(tn(g.t))}</b><div class="note" style="margin-top:4px">${esc(tn(g.d))}</div></div>`).join('');
+  const log=CHANGELOG.map(e=>`<div class="card flat" style="margin-bottom:10px;padding:10px 12px">
+    <div class="row"><b style="font-family:'Fraunces',serif;color:var(--primary)">v${e.v}</b>
+      <span class="note grow" style="text-align:right">${e.d}</span></div>
+    <ul style="margin:6px 0 0;padding-left:18px">${e.c.map(c=>`<li class="note">${esc(tn(c))}</li>`).join('')}</ul></div>`).join('');
+  modal(`<h2>${t('help_title')}</h2>
+  <div class="seg" style="margin-bottom:14px">
+    <button class="${helpTab==='guide'?'on':''}" onclick="openHelp('guide')">${t('help_guide')}</button>
+    <button class="${helpTab==='log'?'on':''}" onclick="openHelp('log')">${t('help_changelog')}</button>
+  </div>
+  ${helpTab==='guide'?guide:log}
+  <button class="btn ghost big" style="margin-top:8px" onclick="closeModal()">${t('close')}</button>`);
+}
+
+/* ============ Boot ============ */
+(async function(){
+  await openDB();
+  const seeded=await kvGet('seeded-v1');
+  if(!seeded){ for(const s of SEEDS) if(!(await dbGet('drinks',s.id))) await dbPut('drinks',s); await kvSet('seeded-v1',true); }
+  LANG=(await kvGet('lang'))||'en';
+  const th=(await kvGet('theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  document.body.dataset.theme=th;
+  document.querySelector('meta[name=theme-color]').content=th==='dark'?'#1A1410':'#F5F0EB';
+  session=await kvGet('session');
+  if(session) TAB='brew';
+  if((await kvGet('lastBackup'))!==dayStr()){ backupDue=true; armAutoBackup(); }
+  render();
+})();
+</script>
+</body>
+</html>
