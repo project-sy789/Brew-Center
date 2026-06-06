@@ -995,7 +995,7 @@ async function openSettings(){
   <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
   <button class="btn ghost big" style="margin-top:10px" onclick="$('#impFile').click()">⬆ ${t('import_data')}</button>
   <div class="note" style="margin-top:14px"><b>${t('last_backup')}:</b> ${lb||t('never_backup')}<br>${t('auto_backup_note')}</div>
-  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.0 · Made with ☕ for baristas</div>
+  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.2 · Made with ☕ for baristas</div>
   <button class="btn ghost big" style="margin-top:10px" onclick="closeModal()">${t('close')}</button>`);
 }
 async function gatherBackup(){
@@ -1050,6 +1050,8 @@ const GUIDE=[
  {icon:'☕',t:{en:'Brew Mode',th:'โหมดเริ่มชง'},d:{en:'Open a drink and tap ▶ Start Brewing. Step-by-step guidance with timers. Bell rings when time is up. Pause, +5 min or skip. Works even if screen sleeps — resume anytime.',th:'เปิดเมนูแล้วกด ▶ เริ่มชง นำทางทีละขั้นพร้อมจับเวลา เสียงเตือนเมื่อครบเวลา ใช้ปุ่มหยุดพัก +5 นาที หรือข้ามได้ ทำงานแม้จอดับ — กลับมาทำต่อได้ทุกเมื่อ'}},
 
  {icon:'🍬',t:{en:'Sweetness Control',th:'ปรับระดับความหวาน'},d:{en:'Drinks with sweetener ingredients (sugar, syrup, honey, condensed milk) show a sweetness selector: 0%, 25%, 50%, 75%, 100%. Sweetener amounts scale automatically while other ingredients stay the same. Set your preferred sweetness before starting a brew — it is saved in the log.',th:'เมนูที่มีส่วนผสมให้ความหวาน (น้ำตาล, น้ำเชื่อม, น้ำผึ้ง, นมข้นหวาน) จะแสดงตัวเลือกความหวาน: 0%, 25%, 50%, 75%, 100% ปริมาณของหวานจะปรับตามอัตโนมัติโดยส่วนผสมอื่นไม่เปลี่ยน ตั้งระดับความหวานก่อนเริ่มชง — ระบบจะบันทึกไว้ใน log'}},
+ {icon:'🥤',t:{en:'Cup Size',th:'ขนาดแก้ว'},d:{en:'Choose cup size before brewing: S (12oz), M (16oz), L (22oz), or Custom (×0.25–×4). Ingredient amounts scale proportionally to match the glass volume. Works together with sweetness and ice level — all three adjust the recipe at once.',th:'เลือกขนาดแก้วก่อนเริ่มชง: S (12oz), M (16oz), L (22oz), หรือกำหนดเอง (×0.25–×4) ปริมาณส่วนผสมปรับตามสัดส่วนแก้วอัตโนมัติ ทำงานร่วมกับความหวานและระดับน้ำแข็ง — ปรับได้ทั้งสามอย่างพร้อมกัน'}},
+ {icon:'🧊',t:{en:'Ice Level',th:'ระดับน้ำแข็ง'},d:{en:'Four ice modes: No Ice (liquid fills glass), Regular (30% ice, liquid adjusted to fill), Extra (50% ice, less liquid), and Fill 🇹🇭 (Thai style — brew liquid first at recipe strength, then fill remaining space with ice). Fill mode keeps the original flavor intensity regardless of glass size — perfect for iced lattes and teas made the Thai way.',th:'โหมดน้ำแข็ง 4 แบบ: ไม่ใส่น้ำแข็ง (ของเหลวเต็มแก้ว), Regular (น้ำแข็ง 30%, ปรับของเหลวให้เต็ม), Extra (น้ำแข็ง 50%, ของเหลวน้อยลง), และ Fill 🇹🇭 (สไตล์ไทย — ชงของเหลวก่อนตามสูตร แล้วเติมน้ำแข็งให้เต็มแก้วที่เหลือ) โหมด Fill คงรสชาติตามสูตรไว้ไม่เปลี่ยน — เหมาะกับชานมเย็นและลาเต้เย็นแบบไทย'}},
  {icon:'🧰',t:{en:'Tools',th:'เครื่องมือ'},d:{en:'Five barista tools: Cost & Margin Calculator, Serving Scaler, Brew Temperature Guide, Unit Converter, and Ice/Dilution Calculator.',th:'เครื่องมือ 5 ตัว: คำนวณต้นทุน & กำไร, ปรับขนาดเสิร์ฟ, คู่มืออุณหภูมิการชง, แปลงหน่วย, และคำนวณน้ำแข็ง'}},
 
  {icon:'📦',t:{en:'Stock Tracker',th:'ตัวติดตามสต็อก'},d:{en:'Track ingredient inventory with min alerts. Know when to reorder coffee beans, syrups, milk.',th:'ติดตามสต็อกวัตถุดิบพร้อมแจ้งเตือนเมื่อใกล้หมด รู้ว่าเมื่อไหร่ต้องสั่งกาแฟ ไซรัป นมเพิ่ม'}},
@@ -1058,6 +1060,10 @@ const GUIDE=[
  {icon:'🌐',t:{en:'Language, Theme & Install',th:'ภาษา ธีม และติดตั้ง'},d:{en:'Switch EN/TH and light/dark mode anytime. Add to home screen for full-screen offline use like a real app.',th:'สลับภาษาและโหมดสว่าง/มืดได้ทุกเมื่อ เพิ่มลงหน้าจอโฮมเพื่อใช้เต็มจอแบบออฟไลน์เหมือนแอปจริง'}},
 ];
 const CHANGELOG=[
+ {v:'1.2',d:'2026-06-07',c:[
+   {en:'🥤 Cup Size selector — S (12oz), M (16oz), L (22oz), or Custom (×0.25–×4.0). Ingredients scale to match the glass volume.',th:'🥤 เลือกขนาดแก้ว — S (12oz), M (16oz), L (22oz), หรือกำหนดเอง (×0.25–×4.0) ปริมาณส่วนผสมปรับตามขนาดแก้ว'}, 
+   {en:'🧊 Ice Level — 4 modes: No Ice, Regular (30%), Extra (50%), and Fill 🇹🇭 (Thai style: brew liquid at recipe strength, fill remaining space with ice).',th:'🧊 ระดับน้ำแข็ง — 4 โหมด: ไม่ใส่น้ำแข็ง, Regular (30%), Extra (50%), และ Fill 🇹🇭 (สไตล์ไทย: ชงของเหลวตามสูตรก่อน เติมน้ำแข็งให้เต็มแก้ว)'},
+   {en:'Cup size, sweetness, and ice level work together — adjust all three before brewing and see the final amounts.',th:'ขนาดแก้ว ความหวาน และน้ำแข็ง ทำงานร่วมกัน — ปรับทั้งสามอย่างก่อนเริ่มชงและดูปริมาณสุดท้าย'}]},
  {v:'1.1',d:'2026-06-06',c:[
    {en:'🍬 Sweetness control — set sweetness 0%-100% for drinks with syrup/sugar/honey. Sweetener amounts adjust automatically while other ingredients stay the same.',th:'🍬 ปรับระดับความหวาน — ตั้งค่าความหวาน 0%-100% สำหรับเครื่องดื่มที่มีน้ำเชื่อม/น้ำตาล/น้ำผึ้ง ปริมาณของหวานปรับตามอัตโนมัติโดยส่วนผสมอื่นไม่เปลี่ยน'},
    {en:'Sweetener checkbox in drink editor — mark ingredients as sweeteners (🍬) when adding/editing drinks.',th:'ติ๊กถูก 🍬 ในหน้าแก้ไขสูตร — เพื่อกำหนดว่าส่วนผสมไหนให้ความหวาน'},
