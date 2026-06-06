@@ -495,7 +495,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
     <h3>${t('steps')}</h3>
     ${r.steps.map((s,i)=>`<div class="stepline"><span class="n">${i+1}</span>
       <div class="grow"><b>${esc(tn(s.t))}</b><div class="note">${esc(tn(s.d))}</div></div>
-      ${s.m?`<span class="tmr">⏱ ${s.m>=60?(Math.round(s.m/6)/10)+' '+t('hr_short'):s.m+' '+t('min_short')}</span>`:''}</div>`).join('')}
+      ${s.m?`<span class="tmr">⏱ ${s.m>=60?(Math.round(s.m/6)/10)+' '+t('hr_short'):s.m>=1?s.m+' '+t('min_short'):Math.round(s.m*60)+'s'}</span>`:''}</div>`).join('')}
   </div>
   <button class="btn big" onclick="startBrew('${id}',curScale,curSweetness,curIce)">▶ ${t('start_brew')}</button>
   <div class="row" style="margin-top:12px">
@@ -725,9 +725,39 @@ async function abortBrew(){
   session=null; await kvSet('session',null); stopTick(); releaseWake(); vBrew();
 }
 async function finishBrew(){
+  const r=await dbGet('drinks',session.drinkId);
   const fin={drinkId:session.drinkId,drinkName:session.drinkName,scale:session.scale,sweetness:session.sweetness!=null?session.sweetness:1,ice:session.ice!=null?session.ice:0.3,startedAt:session.startedAt};
+  // Auto-deduct stock
+  if(r) await autoDeductStock(r, session.scale, fin.sweetness, fin.ice);
   session=null; await kvSet('session',null); stopTick(); releaseWake();
   logEditor(null,fin);
+}
+
+async function autoDeductStock(r, scale, sweetness, ice){
+  const stock=await dbAll('stock'); if(!stock.length)return;
+  const isIce=i=>(tn(i.name)||'').toLowerCase().includes('ice')||(tn(i.name)||'').toLowerCase().includes('น้ำแข็ง');
+  const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*scale*(isIce(i)?0:1)*(i.sweetener?sweetness:1),0);
+  const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*scale*(i.sweetener?sweetness:1),0);
+  const fillMode=ice<0;
+  const cupTargetVol=CUP_PRESETS[Object.keys(CUP_PRESETS).find(k=>CUP_PRESETS[k]===scale)]?CUP_VOL_ML[Object.keys(CUP_VOL_ML).find(k=>CUP_PRESETS[k]===scale)]:scale*(r.serves||1)*355;
+  const totalVol=fillMode?cupTargetVol:fullVol;
+  const realIce=fillMode?Math.max(0,(cupTargetVol-nonIceVol)/cupTargetVol):ice;
+  const iceVol=fillMode?Math.max(0,cupTargetVol-nonIceVol):totalVol*realIce;
+  const liquidScale=fillMode?1:(nonIceVol>0?(totalVol-iceVol)/nonIceVol:1);
+  for(const ing of r.ingredients){
+    if(isIce(ing)) continue; // skip ice — handled by ice mode
+    const used=ing.amount*scale*(isIce(ing)?(iceVol/(mlPerUnit(ing)*scale||0.001)):liquidScale)*(ing.sweetener?sweetness:1);
+    const name=tn(ing.name).toLowerCase();
+    for(const s of stock){
+      if(!s.name)continue;
+      const sn=s.name.toLowerCase();
+      if(name.includes(sn)||sn.includes(name.split(/[\s(（]/)[0])){
+        s.qty=Math.max(0,(s.qty||0)-used);
+        await dbPut('stock',s);
+        break;
+      }
+    }
+  }
 }
 
 /* ============ Bell & Wake Lock ============ */
@@ -998,7 +1028,7 @@ async function openSettings(){
   <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
   <button class="btn ghost big" style="margin-top:10px" onclick="$('#impFile').click()">⬆ ${t('import_data')}</button>
   <div class="note" style="margin-top:14px"><b>${t('last_backup')}:</b> ${lb||t('never_backup')}<br>${t('auto_backup_note')}</div>
-  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.2 · Made with ☕ for baristas</div>
+  <div class="note" style="margin-top:18px;text-align:center">Brew Center v1.3 · Made with ☕ for baristas</div>
   <button class="btn ghost big" style="margin-top:10px" onclick="closeModal()">${t('close')}</button>`);
 }
 async function gatherBackup(){
@@ -1055,6 +1085,7 @@ const GUIDE=[
  {icon:'🍬',t:{en:'Sweetness Control',th:'ปรับระดับความหวาน'},d:{en:'Drinks with sweetener ingredients (sugar, syrup, honey, condensed milk) show a sweetness selector: 0%, 25%, 50%, 75%, 100%. Sweetener amounts scale automatically while other ingredients stay the same. Set your preferred sweetness before starting a brew — it is saved in the log.',th:'เมนูที่มีส่วนผสมให้ความหวาน (น้ำตาล, น้ำเชื่อม, น้ำผึ้ง, นมข้นหวาน) จะแสดงตัวเลือกความหวาน: 0%, 25%, 50%, 75%, 100% ปริมาณของหวานจะปรับตามอัตโนมัติโดยส่วนผสมอื่นไม่เปลี่ยน ตั้งระดับความหวานก่อนเริ่มชง — ระบบจะบันทึกไว้ใน log'}},
  {icon:'🥤',t:{en:'Cup Size',th:'ขนาดแก้ว'},d:{en:'Choose cup size before brewing: S (12oz), M (16oz), L (22oz), or Custom (×0.25–×4). Ingredient amounts scale proportionally to match the glass volume. Works together with sweetness and ice level — all three adjust the recipe at once.',th:'เลือกขนาดแก้วก่อนเริ่มชง: S (12oz), M (16oz), L (22oz), หรือกำหนดเอง (×0.25–×4) ปริมาณส่วนผสมปรับตามสัดส่วนแก้วอัตโนมัติ ทำงานร่วมกับความหวานและระดับน้ำแข็ง — ปรับได้ทั้งสามอย่างพร้อมกัน'}},
  {icon:'🧊',t:{en:'Ice Level',th:'ระดับน้ำแข็ง'},d:{en:'Four ice modes: No Ice (liquid fills glass), Regular (30% ice, liquid adjusted to fill), Extra (50% ice, less liquid), and Fill 🇹🇭 (Thai style — brew liquid first at recipe strength, then fill remaining space with ice). Fill mode keeps the original flavor intensity regardless of glass size — perfect for iced lattes and teas made the Thai way.',th:'โหมดน้ำแข็ง 4 แบบ: ไม่ใส่น้ำแข็ง (ของเหลวเต็มแก้ว), Regular (น้ำแข็ง 30%, ปรับของเหลวให้เต็ม), Extra (น้ำแข็ง 50%, ของเหลวน้อยลง), และ Fill 🇹🇭 (สไตล์ไทย — ชงของเหลวก่อนตามสูตร แล้วเติมน้ำแข็งให้เต็มแก้วที่เหลือ) โหมด Fill คงรสชาติตามสูตรไว้ไม่เปลี่ยน — เหมาะกับชานมเย็นและลาเต้เย็นแบบไทย'}},
+ {icon:'📦',t:{en:'Auto Stock Deduction',th:'ตัดสต็อกอัตโนมัติ'},d:{en:'When you finish a brew, ingredient amounts are automatically deducted from your stock tracker. Keep inventory accurate without manual updates — focus on brewing, the app handles the math.',th:'เมื่อชงเสร็จ ระบบจะหักปริมาณวัตถุดิบจากสต็อกให้อัตโนมัติ สต็อกแม่นยำโดยไม่ต้องอัปเดตเอง — โฟกัสที่การชง แอปจัดการตัวเลขให้'}},
  {icon:'🧰',t:{en:'Tools',th:'เครื่องมือ'},d:{en:'Five barista tools: Cost & Margin Calculator, Serving Scaler, Brew Temperature Guide, Unit Converter, and Ice/Dilution Calculator.',th:'เครื่องมือ 5 ตัว: คำนวณต้นทุน & กำไร, ปรับขนาดเสิร์ฟ, คู่มืออุณหภูมิการชง, แปลงหน่วย, และคำนวณน้ำแข็ง'}},
 
  {icon:'📦',t:{en:'Stock Tracker',th:'ตัวติดตามสต็อก'},d:{en:'Track ingredient inventory with min alerts. Know when to reorder coffee beans, syrups, milk.',th:'ติดตามสต็อกวัตถุดิบพร้อมแจ้งเตือนเมื่อใกล้หมด รู้ว่าเมื่อไหร่ต้องสั่งกาแฟ ไซรัป นมเพิ่ม'}},
@@ -1063,6 +1094,10 @@ const GUIDE=[
  {icon:'🌐',t:{en:'Language, Theme & Install',th:'ภาษา ธีม และติดตั้ง'},d:{en:'Switch EN/TH and light/dark mode anytime. Add to home screen for full-screen offline use like a real app.',th:'สลับภาษาและโหมดสว่าง/มืดได้ทุกเมื่อ เพิ่มลงหน้าจอโฮมเพื่อใช้เต็มจอแบบออฟไลน์เหมือนแอปจริง'}},
 ];
 const CHANGELOG=[
+ {v:'1.3',d:'2026-06-08',c:[
+   {en:'⏱ Timer now supports seconds — set step time as decimal minutes (0.5 = 30s). Display shows seconds for steps under 1 minute.',th:'⏱ จับเวลารองรับวินาทีแล้ว — ตั้งเวลาเป็นทศนิยมนาที (0.5 = 30 วิ) แสดงผลเป็นวินาทีสำหรับขั้นตอนที่น้อยกว่า 1 นาที'},
+   {en:'📦 Auto stock deduction — finishing a brew automatically deducts ingredient amounts from your stock tracker. No more manual updating!',th:'📦 ตัดสต็อกอัตโนมัติ — ชงเสร็จแล้วระบบหักวัตถุดิบจากสต็อกให้อัตโนมัติ ไม่ต้องมาคอยอัปเดตเองแล้ว!'}]},
+ {v:'1.2',d:'2026-06-07',c:[
  {v:'1.2',d:'2026-06-07',c:[
    {en:'🥤 Cup Size selector — S (12oz), M (16oz), L (22oz), or Custom (×0.25–×4.0). Ingredients scale to match the glass volume.',th:'🥤 เลือกขนาดแก้ว — S (12oz), M (16oz), L (22oz), หรือกำหนดเอง (×0.25–×4.0) ปริมาณส่วนผสมปรับตามขนาดแก้ว'}, 
    {en:'🧊 Ice Level — 4 modes: No Ice, Regular (30%), Extra (50%), and Fill 🇹🇭 (Thai style: brew liquid at recipe strength, fill remaining space with ice).',th:'🧊 ระดับน้ำแข็ง — 4 โหมด: ไม่ใส่น้ำแข็ง, Regular (30%), Extra (50%), และ Fill 🇹🇭 (สไตล์ไทย: ชงของเหลวตามสูตรก่อน เติมน้ำแข็งให้เต็มแก้ว)'},
