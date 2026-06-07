@@ -591,16 +591,16 @@ function edRender(){
   <label class="f">Type</label>
   <select id="edType"><option value="hot" ${ed.type==='hot'?'selected':''}>${t('type_hot')}</option>
   <option value="cold" ${ed.type==='cold'?'selected':''}>${t('type_cold')}</option></select>
-  <label class="f">${t('serve_size_label')}</label><input id="edServes" type="number" inputmode="numeric" value="${ed.serves||1}">
+  <label class="f">${t('serve_size_label')}</label><input id="edServes" type="number" inputmode="numeric" min="1" value="${ed.serves||1}">
   <label class="f">${t('source')}</label><input id="edSrc" value="${esc(ed.source||'')}">
   <label class="f">${t('notes_opt')}</label><textarea id="edNotes" rows="2">${esc(ed.notes||'')}</textarea>
   <label class="f">${t('ingredients')}</label>
   <div id="edIngs">${ed.ingredients.map((i,x)=>`<div class="row" style="margin-bottom:8px">
     <input class="grow" placeholder="${t('ingredient_name')}" value="${esc(i.name)}" onchange="ed.ingredients[${x}].name=this.value">
-    <input type="number" inputmode="decimal" style="width:72px" placeholder="Amt" value="${i.amount||''}" onchange="ed.ingredients[${x}].amount=+this.value||0">
+    <input type="number" inputmode="decimal" style="width:72px" placeholder="Amt" min="0" value="${i.amount||''}" onchange="ed.ingredients[${x}].amount=+this.value||0">
     <select style="width:72px" onchange="ed.ingredients[${x}].unit=this.value">
       ${['ml','shot','tbsp','tsp','cup','oz','slice','g'].map(u=>`<option value="${u}" ${i.unit===u?'selected':''}>${u}</option>`).join('')}</select>
-    <input type="number" inputmode="decimal" style="width:64px" placeholder="฿" value="${i.cost||''}" onchange="ed.ingredients[${x}].cost=+this.value||0">
+    <input type="number" inputmode="decimal" style="width:64px" placeholder="฿" min="0" value="${i.cost||''}" onchange="ed.ingredients[${x}].cost=+this.value||0">
     <label style="font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px">🍬
       <input type="checkbox" style="width:20px;height:20px" ${i.sweetener?'checked':''} onchange="ed.ingredients[${x}].sweetener=this.checked"></label>
     <button class="del-x" onclick="ed.ingredients.splice(${x},1);edSync();edRender()">✕</button></div>`).join('')}</div>
@@ -609,7 +609,7 @@ function edRender(){
   <div id="edSteps">${ed.steps.map((s,x)=>`<div class="card flat" style="padding:10px;margin-bottom:8px">
     <div class="row"><b style="color:var(--accent)">${x+1}</b>
       <input class="grow" placeholder="${t('step_title')}" value="${esc(s.t)}" onchange="ed.steps[${x}].t=this.value">
-      <input type="number" inputmode="numeric" style="width:74px" placeholder="${t('minutes')}" value="${s.m||''}" onchange="ed.steps[${x}].m=+this.value||0">
+      <input type="number" inputmode="numeric" style="width:74px" placeholder="${t('minutes')}" min="0" step="0.5" value="${s.m||''}" onchange="ed.steps[${x}].m=+this.value||0">
       <button class="del-x" onclick="ed.steps.splice(${x},1);edSync();edRender()">✕</button></div>
     <input style="margin-top:8px" placeholder="${t('step_desc')}" value="${esc(s.d)}" onchange="ed.steps[${x}].d=this.value"></div>`).join('')}</div>
   <button class="btn ghost" onclick="edSync();ed.steps.push({t:'',d:'',m:0});edRender()">${t('add_step')}</button>
@@ -896,10 +896,10 @@ const TOOLS={
     <div class="card">
       ${costRows.map((r,i)=>`<div class="row" style="margin-bottom:8px">
         <input class="grow" value="${esc(r[0])}" onchange="costRows[${i}][0]=this.value">
-        <input type="number" inputmode="decimal" style="width:64px" value="${r[1]}" oninput="costRows[${i}][1]=+this.value||0;renderCost()">
+        <input type="number" inputmode="decimal" style="width:64px" min="0" value="${r[1]}" oninput="costRows[${i}][1]=+this.value||0;renderCost()">
         <select style="width:64px" onchange="costRows[${i}][2]=this.value;renderCost()">
           ${['ml','shot','tbsp','tsp','cup','oz','g','slice'].map(u=>`<option value="${u}" ${r[2]===u?'selected':''}>${u}</option>`).join('')}</select>
-        <input type="number" inputmode="decimal" style="width:64px" placeholder="฿" value="${r[3]}" oninput="costRows[${i}][3]=+this.value||0;renderCost()">
+        <input type="number" inputmode="decimal" style="width:64px" placeholder="฿" min="0" value="${r[3]}" oninput="costRows[${i}][3]=+this.value||0;renderCost()">
         <button class="del-x" onclick="costRows.splice(${i},1);renderCost()">✕</button></div>`).join('')}
       <button class="btn ghost" style="margin-top:8px" onclick="costRows.push(['',0,'ml',0]);renderCost()">${t('add_row')}</button>
       <div class="result-box"><div class="note">${t('total_cost')}</div><div class="v" id="costTotal"></div></div>
@@ -961,7 +961,7 @@ const TOOLS={
   $('#view').innerHTML=`${toolBack}<h1>${t('t_dilution')}</h1>
   <div class="card">
     <label class="f" style="margin-top:0">${t('orig_vol')}</label>
-    <input id="dilVol" type="number" inputmode="decimal" value="300" oninput="dilCalc()">
+    <input id="dilVol" type="number" inputmode="decimal" min="1" value="300" oninput="dilCalc()">
     <label class="f">${t('ice_level')}</label>
     <div class="seg" style="margin-bottom:8px">
       <button id="dilNone" onclick="dilSet('none')">${t('no_ice')}</button>
@@ -1015,11 +1015,11 @@ async function stockEditor(id){
   modal(`<h2>${id?t('edit'):t('stock_add')}</h2>
   <label class="f">${t('stock_item')}</label><input id="stName" value="${esc(s?.name||'')}">
   <div class="row" style="margin-top:4px">
-    <div class="grow"><label class="f" style="margin-top:0">${t('stock_qty')}</label><input id="stQty" type="number" inputmode="decimal" value="${s?.qty||0}"></div>
+    <div class="grow"><label class="f" style="margin-top:0">${t('stock_qty')}</label><input id="stQty" type="number" inputmode="decimal" min="0" value="${s?.qty||0}"></div>
     <div class="grow"><label class="f" style="margin-top:0">${t('stock_unit')}</label><input id="stUnit" value="${esc(s?.unit||'')}" placeholder="ml, g, bags..."></div>
-    <div class="grow"><label class="f" style="margin-top:0">${t('cost_est')} (฿)</label><input id="stCost" type="number" inputmode="decimal" value="${s?.cost||''}" placeholder="฿"></div>
+    <div class="grow"><label class="f" style="margin-top:0">${t('cost_est')} (฿)</label><input id="stCost" type="number" inputmode="decimal" min="0" value="${s?.cost||''}" placeholder="฿"></div>
   </div>
-  <label class="f">${t('stock_min')}</label><input id="stMin" type="number" inputmode="decimal" value="${s?.min||''}">
+  <label class="f">${t('stock_min')}</label><input id="stMin" type="number" inputmode="decimal" min="0" value="${s?.min||''}">
   <label class="f">${t('stock_note')}</label><input id="stNote" value="${esc(s?.note||'')}">
   <div class="row" style="margin-top:18px">
     <button class="btn ghost grow" onclick="closeModal()">${t('cancel')}</button>
