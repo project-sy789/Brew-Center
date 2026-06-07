@@ -688,13 +688,19 @@ async function aiDoImport(){
 
 /* ============ Guided Brew session ============ */
 async function startBrew(id,scale,sweetness,ice){
-  const r=await dbGet('drinks',id);
-  kvSet('last-'+id,{scale:curScale,cup:curCup,sweetness:curSweetness,ice:curIce}); session={drinkId:id,drinkName:tn(r.name),scale:scale||1,sweetness:sweetness!==undefined?sweetness:1,ice:ice!==undefined?ice:0.3,step:0,startedAt:Date.now(),
-           stepStartedAt:Date.now(),endsAt:null,paused:false,pausedRemain:0,acknowledged:false};
-  const m=r.steps[0]?.m||0;
-  session.endsAt=m?Date.now()+m*60000:null;
-  await kvSet('session',session);
-  TAB='brew'; render();
+  try{
+    const r=await dbGet('drinks',id); if(!r)return go('drinks');
+    await kvSet('last-'+id,{scale:curScale,cup:curCup,sweetness:curSweetness,ice:curIce});
+    session={drinkId:id,drinkName:tn(r.name),scale:scale||1,sweetness:sweetness!==undefined?sweetness:1,ice:ice!==undefined?ice:0.3,step:0,startedAt:Date.now(),
+             stepStartedAt:Date.now(),endsAt:null,paused:false,pausedRemain:0,acknowledged:false};
+    const m=r.steps[0]?.m||0;
+    session.endsAt=m?Date.now()+m*60000:null;
+    await kvSet('session',session);
+    TAB='brew'; render();
+  }catch(e){
+    console.error('startBrew error:',e);
+    toast(LANG==='en'?'Failed to start brew. Try again.':'เริ่มชงไม่สำเร็จ ลองอีกครั้ง');
+  }
 }
 async function vBrew(){
   session = session || await kvGet('session');
