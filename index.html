@@ -580,7 +580,13 @@ function edRender(){
   <div class="row" style="margin-top:12px">
     <div class="grow"><label class="f" style="margin-top:0">${t('category')}</label>
       <select id="edCat">${CATS.map(c=>`<option value="${c}" ${ed.cat===c?'selected':''}>${catName(c)}</option>`).join('')}</select></div>
-    <div class="grow"><label class="f" style="margin-top:0">Icon</label><input id="edIcon" value="${esc(ed.icon||'')}" maxlength="4"></div>
+    <div class="grow"><label class="f" style="margin-top:0">Icon</label>
+      <div class="row" style="gap:4px;align-items:center">
+        <span style="font-size:28px" id="edIconPreview">${ed.icon||'🥤'}</span>
+        <input class="grow" id="edIcon" value="${esc(ed.icon||'')}" maxlength="4" oninput="$('#edIconPreview').textContent=this.value||'🥤'"></div>
+      <div class="row" style="margin-top:6px;gap:4px;flex-wrap:wrap">
+        ${['☕','🧊','🍵','🥤','🫧','✨','🍫','🥭','🧡','🍓','🍋','🍑','🍇','🥥','🍯','🌿','💜','🤎','🍬','🧋'].map(e=>`<button style="font-size:20px;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer" onclick="$('#edIcon').value='${e}';$('#edIconPreview').textContent='${e}';ed.icon='${e}'">${e}</button>`).join('')}
+      </div></div>
   </div>
   <label class="f">Type</label>
   <select id="edType"><option value="hot" ${ed.type==='hot'?'selected':''}>${t('type_hot')}</option>
@@ -638,17 +644,18 @@ const AI_SCHEMA=`{
   "ingredients": [ {"name": "Espresso shot", "amount": 2, "unit": "shot", "cost": 8}, {"name": "Sugar syrup", "amount": 15, "unit": "ml", "cost": 0.5, "sweetener": true}, {"name": "Milk", "amount": 200, "unit": "ml", "cost": 6} ],
   "steps": [ {"t": "Step title", "d": "What to do", "m": 0} ]
 }`;
-function aiPrompt(){return `You are a drink-recipe structuring assistant for a cafe app. Convert the drink recipe into EXACTLY this JSON format and output ONLY the JSON (no markdown, no explanation):
+function aiPrompt(){return `You are a drink-recipe structuring assistant for a cafe app (Brew Center). Convert the drink recipe into EXACTLY this JSON format and output ONLY the JSON (no markdown, no explanation):
 
 ${AI_SCHEMA}
 
 Rules:
 - ALL liquid amounts in ml (convert: 1 cup = 240 ml, 1 oz = 30 ml, 1 shot espresso = 30 ml, 1 tbsp = 15 ml, 1 tsp = 5 ml).
-- "m" = timer minutes for that step (0 if no waiting).
+- "m" = timer in minutes — supports decimals (0.5 = 30s, 0.25 = 15s). Set to 0 if no waiting.
 - "cost" = estimated ingredient cost in Thai Baht (฿) per the amount listed. Be reasonable for a Thai cafe.
 - Mark sugar, syrup, honey, condensed milk, chocolate sauce as "sweetener": true. Other ingredients omit this field.
-- Do NOT include ice as an ingredient — the app handles ice level separately (No Ice / Regular / Extra / Fill modes).
-- Keep step titles short; put details in "d".
+- Do NOT include ice as an ingredient — the app has ice level control (No Ice / Regular 30% / Extra 50% / Fill mode).
+- "icon": pick ONE emoji that best represents the drink (☕🍵🥤🫧✨🍫🥭🧡🍋).
+- Keep step titles short (2-5 words); put details in "d".
 - Respond in ${LANG==='th'?'Thai (keep coffee terms like espresso, shot, latte art in English)':'English'}.
 
 Here is the drink recipe:
