@@ -361,10 +361,12 @@ let drinkFilter='all', drinkSearch='', favs=[];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
 function toast(msg){const r=$('#toastRoot');r.innerHTML=`<div class="toast">${esc(msg)}</div>`;setTimeout(()=>r.innerHTML='',2200);}
+let _undoFn=null;
 function toastWithUndo(msg, undoFn){
+  _undoFn=undoFn;
   const r=$('#toastRoot');
-  r.innerHTML=`<div class="toast" style="display:flex;gap:12px;align-items:center"><span>${esc(msg)}</span><button onclick="event.stopPropagation();(${undoFn.toString()})();this.parentElement.remove()" style="background:var(--primary-ink);color:var(--primary);border:none;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;cursor:pointer">↩ ${LANG==='en'?'Undo':'คืนค่า'}</button></div>`;
-  setTimeout(()=>{ if(r.querySelector('.toast')) r.innerHTML=''; },5000);
+  r.innerHTML=`<div class="toast" style="display:flex;gap:12px;align-items:center"><span>${esc(msg)}</span><button onclick="event.stopPropagation();_undoFn&&_undoFn();this.parentElement.remove()" style="background:var(--primary-ink);color:var(--primary);border:none;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;cursor:pointer">↩ ${LANG==='en'?'Undo':'คืนค่า'}</button></div>`;
+  setTimeout(()=>{ if(r.querySelector('.toast')) r.innerHTML=''; _undoFn=null; },5000);
 }
 function modal(html){$('#modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="handle"></div>${html}</div></div>`;}
 function closeModal(){$('#modalRoot').innerHTML='';}
@@ -1171,17 +1173,13 @@ const CHANGELOG=[
    {en:'📤 Share recipe — copy a drink recipe as formatted text to share with staff or friends.',th:'📤 แชร์สูตร — คัดลอกสูตรเครื่องดื่มเป็นข้อความ formatted เพื่อแชร์ให้พนักงานหรือเพื่อน'},
    {en:'↩ Undo delete — accidentally deleted a drink or log entry? Tap Undo in the notification to restore it.',th:'↩ ยกเลิกการลบ — เผลอลบเมนูหรือบันทึก? แตะ Undo ในแจ้งเตือนเพื่อกู้คืนทันที'}]},
  {v:'1.5',d:'2026-06-08',c:[
- {v:'1.5',d:'2026-06-08',c:[
    {en:'💾 Remember last settings — cup size, ice level, and sweetness are saved per drink. Open a drink and your preferences are already set!',th:'💾 จำค่าล่าสุด — ขนาดแก้ว ระดับน้ำแข็ง และความหวาน ถูกบันทึกต่อเครื่องดื่ม เปิดเมนูครั้งต่อไปค่าที่เคยตั้งไว้ก็พร้อมใช้เลย!'},
    {en:'⭐ Favorites — star your go-to drinks. Filter by favorites and see them at the top of the menu.',th:'⭐ รายการโปรด — กดดาวให้เมนูที่ชอบ กรองดูเฉพาะรายการโปรดและแสดงไว้ด้านบนสุดของเมนู'}]},
  {v:'1.4',d:'2026-06-08',c:[
- {v:'1.4',d:'2026-06-08',c:[
    {en:'📊 Brew Analytics Dashboard — see total brews, weekly count, average rating, and top drinks at a glance on the Log page.',th:'📊 แดชบอร์ดวิเคราะห์การชง — ดูจำนวนการชงทั้งหมด, สัปดาห์นี้, คะแนนเฉลี่ย, และเมนูยอดนิยม ได้ในหน้า Log'}]},
- {v:'1.3',d:'2026-06-08',c:[
  {v:'1.3',d:'2026-06-08',c:[
    {en:'⏱ Timer now supports seconds — set step time as decimal minutes (0.5 = 30s). Display shows seconds for steps under 1 minute.',th:'⏱ จับเวลารองรับวินาทีแล้ว — ตั้งเวลาเป็นทศนิยมนาที (0.5 = 30 วิ) แสดงผลเป็นวินาทีสำหรับขั้นตอนที่น้อยกว่า 1 นาที'},
    {en:'📦 Auto stock deduction — finishing a brew automatically deducts ingredient amounts from your stock tracker. No more manual updating!',th:'📦 ตัดสต็อกอัตโนมัติ — ชงเสร็จแล้วระบบหักวัตถุดิบจากสต็อกให้อัตโนมัติ ไม่ต้องมาคอยอัปเดตเองแล้ว!'}]},
- {v:'1.2',d:'2026-06-07',c:[
  {v:'1.2',d:'2026-06-07',c:[
    {en:'🥤 Cup Size selector — S (12oz), M (16oz), L (22oz), or Custom (×0.25–×4.0). Ingredients scale to match the glass volume.',th:'🥤 เลือกขนาดแก้ว — S (12oz), M (16oz), L (22oz), หรือกำหนดเอง (×0.25–×4.0) ปริมาณส่วนผสมปรับตามขนาดแก้ว'}, 
    {en:'🧊 Ice Level — 4 modes: No Ice, Regular (30%), Extra (50%), and Fill 🇹🇭 (Thai style: brew liquid at recipe strength, fill remaining space with ice).',th:'🧊 ระดับน้ำแข็ง — 4 โหมด: ไม่ใส่น้ำแข็ง, Regular (30%), Extra (50%), และ Fill 🇹🇭 (สไตล์ไทย: ชงของเหลวตามสูตรก่อน เติมน้ำแข็งให้เต็มแก้ว)'},
