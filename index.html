@@ -987,18 +987,19 @@ async function vStock(){
   </div>
   <div class="card" style="margin-top:14px">
     ${items.map(s=>{const low=s.min&&s.qty<=s.min;
-      return `<div class="feeditem"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
+      return `<div class="feeditem" style="cursor:pointer" onclick="stockEditor('${s.id}')"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
       <div class="grow"><b>${esc(s.name)}</b> ${low?`<span class="badge" style="background:var(--accent)">${t('low_stock')}</span>`:''}
-        <div class="note">${s.qty} ${s.unit||''} ${s.cost?`· ${s.cost} ฿/${s.unit||'unit'}`:''} ${s.min?`· Min: ${s.min} ${s.unit||''}`:''}</div>
+        <div class="note">${s.qty} ${s.unit||''} ${s.cost!=null?`· ${s.cost} ฿/${s.unit||'unit'}`:''} ${s.min?`· Min: ${s.min} ${s.unit||''}`:''}</div>
         ${s.note?`<div class="note">${esc(s.note)}</div>`:''}
         <div class="note" style="font-size:11px">${s.updated?new Date(s.updated).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div></div>
-      <button class="del-x" onclick="delStock('${s.id}')">✕</button></div>`}).join('')
+      <button class="iconbtn" style="border:none;min-width:32px;height:32px;font-size:16px" onclick="event.stopPropagation();stockEditor('${s.id}')">✎</button>
+      <button class="del-x" onclick="event.stopPropagation();delStock('${s.id}')">✕</button></div>`}).join('')
      || `<div class="empty"><div class="big">📦</div>${t('no_stock')}</div>`}
   </div>`;
 }
-function stockEditor(id){
-  const s=id?dbGet('stock',id):null;
-  modal(`<h2>${t('stock_add')}</h2>
+async function stockEditor(id){
+  const s=id?await dbGet('stock',id):null;
+  modal(`<h2>${id?t('edit'):t('stock_add')}</h2>
   <label class="f">${t('stock_item')}</label><input id="stName" value="${esc(s?.name||'')}">
   <div class="row" style="margin-top:4px">
     <div class="grow"><label class="f" style="margin-top:0">${t('stock_qty')}</label><input id="stQty" type="number" inputmode="decimal" value="${s?.qty||0}"></div>
@@ -1017,7 +1018,6 @@ function stockEditor(id){
     if(!item.name.trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อรายการ');
     await dbPut('stock',item); closeModal(); toast(t('data_saved')); vStock();
   };
-  if(id) s.then(r=>{if(r){$('#stName').value=r.name||'';$('#stQty').value=r.qty;}});
 }
 async function importStockFromMenu(){
   const drinks=await dbAll('drinks'), stock=await dbAll('stock');
