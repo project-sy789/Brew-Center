@@ -190,7 +190,7 @@ const I18N = {
   ice_option:["Ice option","แบบน้ำแข็ง"], no_ice:["No ice","ไม่ใส่น้ำแข็ง"], regular_ice:["Regular ice","น้ำแข็งปกติ"], extra_ice:["Extra ice","น้ำแข็งเต็มแก้ว"],
   orig_vol:["Original volume (ml)","ปริมาตรตั้งต้น (มล.)"], ice_level:["Ice level","ระดับน้ำแข็ง"],
   adjusted_vol:["Adjusted volume","ปริมาตรที่ปรับแล้ว"], ice_to_add:["Ice to add","น้ำแข็งที่ต้องใส่"],
-  stock_title:["Stock Tracker","ตัวติดตามสต็อก"], stock_sub:["Track your ingredients inventory","ติดตามปริมาณวัตถุดิบคงเหลือ"],
+  stock_title:["Stock Tracker","ตัวติดตามสต็อก"], stock_sub:["Track your ingredients inventory","ติดตามปริมาณวัตถุดิบคงเหลือ"], stock_import_menu:["Import from menu","นำเข้าจากเมนู"],
   stock_add:["Update Stock","อัปเดตสต็อก"], stock_item:["Item","รายการ"], stock_qty:["Qty left","คงเหลือ"],
   stock_unit:["Unit","หน่วย"], stock_min:["Min alert","แจ้งเตือนเมื่อเหลือ"],
   stock_note:["Note (supplier, batch...)","โน้ต (ซัพพลายเออร์, ล็อต...)"],
@@ -981,7 +981,10 @@ function uCalc(){const a=+$('#uAmt').value||0,u=$('#uUnit').value;
 async function vStock(){
   const items=(await dbAll('stock')).sort((a,b)=>a.name?.localeCompare?.(b.name)||0);
   $('#view').innerHTML=`<h1>${t('stock_title')}</h1><div class="tagline">${t('stock_sub')}</div>
-  <button class="btn big" onclick="stockEditor()">📦 ${t('stock_add')}</button>
+  <div class="row" style="gap:8px">
+    <button class="btn grow" onclick="stockEditor()">📦 ${t('stock_add')}</button>
+    <button class="btn ghost" onclick="importStockFromMenu()" title="${LANG==='en'?'Scan all drink recipes and create stock items':'สแกนสูตรทั้งหมดเพื่อสร้างรายการสต็อก'}">📋 ↳</button>
+  </div>
   <div class="card" style="margin-top:14px">
     ${items.map(s=>{const low=s.min&&s.qty<=s.min;
       return `<div class="feeditem"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
@@ -1014,6 +1017,25 @@ function stockEditor(id){
     await dbPut('stock',item); closeModal(); toast(t('data_saved')); vStock();
   };
   if(id) s.then(r=>{if(r){$('#stName').value=r.name||'';$('#stQty').value=r.qty;}});
+}
+async function importStockFromMenu(){
+  const drinks=await dbAll('drinks'), stock=await dbAll('stock');
+  const stockNames=stock.map(s=>(s.name||'').toLowerCase().trim());
+  let added=0;
+  for(const r of drinks){
+    for(const ing of r.ingredients||[]){
+      const name=tn(ing.name).trim(); if(!name||name.length<2)continue;
+      const n=name.toLowerCase();
+      if(stockNames.some(s=>s===n||s.includes(n)||n.includes(s)))continue;
+      // Determine reasonable defaults
+      const unit=ing.unit||'ml';
+      const min=unit==='ml'?500:unit==='shot'?20:unit==='cup'?5:unit==='g'?200:10;
+      const item={id:uid(),name,unit,qty:min*2,min,note:'Imported from menu',updated:Date.now()};
+      await dbPut('stock',item); stockNames.push(n); added++;
+    }
+  }
+  toast(added?(LANG==='en'?`Added ${added} stock items from menu`:`เพิ่ม ${added} รายการสต็อกจากเมนู`):(LANG==='en'?'All ingredients already in stock':'ส่วนผสมทั้งหมดมีในสต็อกแล้ว'));
+  vStock();
 }
 async function delStock(id){if(!confirm(t('confirm_del')))return; await dbDel('stock',id); vStock();}
 
@@ -1114,7 +1136,17 @@ async function delLog(id){
 /* ============ Settings / Backup ============ */
 async function openSettings(){
   const lb=await kvGet('lastBackup');
+  const drinks=await dbAll('drinks'); const logs=await dbAll('logs'); const stock=await dbAll('stock');
+  const lowStock=stock.filter(s=>s.min&&s.qty<=s.min).length;
   modal(`<h2>${t('settings')}</h2>
+  <div class="card flat" style="background:var(--surface2);margin-bottom:16px">
+    <div class="row" style="flex-wrap:wrap;gap:8px">
+      <div class="chip">☕ ${drinks.length} drinks</div>
+      <div class="chip">📓 ${logs.length} logs</div>
+      <div class="chip">📦 ${stock.length} stock</div>
+      ${lowStock?`<div class="chip" style="background:var(--accent);color:#fff">⚠️ ${lowStock} low</div>`:''}
+    </div>
+  </div>
   <div class="note" style="margin-bottom:14px">${t('export_note')}</div>
   <button class="btn big" onclick="exportData()">⬇ ${t('export_data')}</button>
   <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(this)">
