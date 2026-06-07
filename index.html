@@ -989,7 +989,7 @@ async function vStock(){
     ${items.map(s=>{const low=s.min&&s.qty<=s.min;
       return `<div class="feeditem"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
       <div class="grow"><b>${esc(s.name)}</b> ${low?`<span class="badge" style="background:var(--accent)">${t('low_stock')}</span>`:''}
-        <div class="note">${s.qty} ${s.unit||''} ${s.min?`· Min: ${s.min} ${s.unit||''}`:''}</div>
+        <div class="note">${s.qty} ${s.unit||''} ${s.cost?`· ${s.cost} ฿/${s.unit||'unit'}`:''} ${s.min?`· Min: ${s.min} ${s.unit||''}`:''}</div>
         ${s.note?`<div class="note">${esc(s.note)}</div>`:''}
         <div class="note" style="font-size:11px">${s.updated?new Date(s.updated).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div></div>
       <button class="del-x" onclick="delStock('${s.id}')">✕</button></div>`}).join('')
@@ -1003,6 +1003,7 @@ function stockEditor(id){
   <div class="row" style="margin-top:4px">
     <div class="grow"><label class="f" style="margin-top:0">${t('stock_qty')}</label><input id="stQty" type="number" inputmode="decimal" value="${s?.qty||0}"></div>
     <div class="grow"><label class="f" style="margin-top:0">${t('stock_unit')}</label><input id="stUnit" value="${esc(s?.unit||'')}" placeholder="ml, g, bags..."></div>
+    <div class="grow"><label class="f" style="margin-top:0">${t('cost_est')} (฿)</label><input id="stCost" type="number" inputmode="decimal" value="${s?.cost||''}" placeholder="฿"></div>
   </div>
   <label class="f">${t('stock_min')}</label><input id="stMin" type="number" inputmode="decimal" value="${s?.min||''}">
   <label class="f">${t('stock_note')}</label><input id="stNote" value="${esc(s?.note||'')}">
@@ -1012,7 +1013,7 @@ function stockEditor(id){
   </div>`);
   window.saveStock=async(existingId)=>{
     const item={id:existingId||uid(),name:$('#stName')?.value, qty:+$('#stQty')?.value||0,
-      unit:$('#stUnit')?.value, min:+$('#stMin')?.value||0, note:$('#stNote')?.value, updated:Date.now()};
+      unit:$('#stUnit')?.value, min:+$('#stMin')?.value||0, cost:+$('#stCost')?.value||0, note:$('#stNote')?.value, updated:Date.now()};
     if(!item.name.trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อรายการ');
     await dbPut('stock',item); closeModal(); toast(t('data_saved')); vStock();
   };
@@ -1030,7 +1031,7 @@ async function importStockFromMenu(){
       // Determine reasonable defaults
       const unit=ing.unit||'ml';
       const min=unit==='ml'?500:unit==='shot'?20:unit==='cup'?5:unit==='g'?200:10;
-      const item={id:uid(),name,unit,qty:min*2,min,note:'Imported from menu',updated:Date.now()};
+      const item={id:uid(),name,unit,qty:min*2,min,cost:ing.cost||0,note:'Imported from menu',updated:Date.now()};
       await dbPut('stock',item); stockNames.push(n); added++;
     }
   }
