@@ -1211,16 +1211,23 @@ function openHelp(tab){
 
 /* ============ Boot ============ */
 (async function(){
-  await openDB();
-  const seeded=await kvGet('seeded-v1');
-  if(!seeded){ for(const s of SEEDS) if(!(await dbGet('drinks',s.id))) await dbPut('drinks',s); await kvSet('seeded-v1',true); }
-  LANG=(await kvGet('lang'))||'en';
-  const th=(await kvGet('theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-  document.body.dataset.theme=th;
-  document.querySelector('meta[name=theme-color]').content=th==='dark'?'#1A1410':'#F5F0EB';
-  session=await kvGet('session');
-  if(session) TAB='brew';
-  if((await kvGet('lastBackup'))!==dayStr()){ backupDue=true; armAutoBackup(); }
+  try{
+    await openDB();
+    const seeded=await kvGet('seeded-v1');
+    if(!seeded){ for(const s of SEEDS) if(!(await dbGet('drinks',s.id))) await dbPut('drinks',s); await kvSet('seeded-v1',true); }
+    LANG=(await kvGet('lang'))||'en';
+    const th=(await kvGet('theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    document.body.dataset.theme=th;
+    document.querySelector('meta[name=theme-color]').content=th==='dark'?'#1A1410':'#F5F0EB';
+    session=await kvGet('session');
+    if(session) TAB='brew';
+    if((await kvGet('lastBackup'))!==dayStr()){ backupDue=true; armAutoBackup(); }
+  }catch(e){
+    console.error('Brew Center init error:',e);
+    $('#view').innerHTML='<div class="empty"><div class="big">⚠️</div><h3>App failed to start</h3><div class="note">Please check that your browser supports IndexedDB and storage is not blocked.</div></div>';
+    renderNav();
+    return;
+  }
   render();
 })();
 </script>
