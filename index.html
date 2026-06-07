@@ -692,10 +692,27 @@ async function startBrew(id,scale,sweetness,ice){
 async function vBrew(){
   session = session || await kvGet('session');
   if(!session){
+    const drinks=await dbAll('drinks');
+    const logs=(await dbAll('logs')).sort((a,b)=>b.at-a.at);
+    const recentIds=[...new Set(logs.map(l=>l.drinkId))].slice(0,6);
+    const recent=recentIds.map(id=>drinks.find(d=>d.id===id)).filter(Boolean);
     $('#view').innerHTML=`<h1>${t('nav_brew')}</h1>
-    <div class="empty"><div class="big">☕</div><h3>${t('brew_none')}</h3>
-    <div class="note" style="max-width:340px;margin:8px auto 20px">${t('brew_none_sub')}</div>
-    <button class="btn" onclick="go('drinks')">${t('browse_drinks')}</button></div>`;
+    <div class="tagline">${t('drinks_sub')}</div>
+    ${recent.length?`<h3 style="font-size:15px;margin:12px 0 8px">🕐 ${LANG==='en'?'Recent brews':'ชงล่าสุด'}</h3>
+    ${recent.map(r=>`<div class="card recipe-card" onclick="vDrinkDetail('${r.id}')">
+      <div class="ico">${r.icon||ICONS[r.cat]||'🥤'}</div>
+      <div class="grow"><h3>${esc(tn(r.name))}</h3>
+        <div class="meta">${catName(r.cat)} · ${r.steps.length} ${t('steps').toLowerCase()}</div></div>
+      <button class="btn" style="padding:8px 16px;font-size:14px" onclick="event.stopPropagation();vDrinkDetail('${r.id}')">▶ ${t('start_brew')}</button>
+    </div>`).join('')}
+    <h3 style="font-size:15px;margin:14px 0 8px">📋 ${LANG==='en'?'All drinks':'เมนูทั้งหมด'}</h3>`:''}
+    ${drinks.slice(0,8).map(r=>`<div class="card recipe-card" onclick="vDrinkDetail('${r.id}')">
+      <div class="ico">${r.icon||ICONS[r.cat]||'🥤'}</div>
+      <div class="grow"><h3>${esc(tn(r.name))}</h3>
+        <div class="meta">${catName(r.cat)} · ${r.steps.length} ${t('steps').toLowerCase()}</div></div>
+      <button class="btn" style="padding:8px 16px;font-size:14px" onclick="event.stopPropagation();vDrinkDetail('${r.id}')">▶ ${t('start_brew')}</button>
+    </div>`).join('')}
+    <button class="btn ghost big" style="margin-top:12px" onclick="go('drinks')">📖 ${t('browse_drinks')}</button></div>`;
     stopTick(); releaseWake(); return;
   }
   const r=await dbGet('drinks',session.drinkId);
@@ -1220,7 +1237,9 @@ function openHelp(tab){
     document.body.dataset.theme=th;
     document.querySelector('meta[name=theme-color]').content=th==='dark'?'#1A1410':'#F5F0EB';
     session=await kvGet('session');
-    if(session) TAB='brew';
+    // Only resume brew if session is recent (< 2 hours old)
+    if(session && Date.now()-session.startedAt < 7200000) TAB='brew';
+    else if(session){ session=null; await kvSet('session',null); }
     if((await kvGet('lastBackup'))!==dayStr()){ backupDue=true; armAutoBackup(); }
   }catch(e){
     console.error('Brew Center init error:',e);
