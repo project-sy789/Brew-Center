@@ -251,7 +251,7 @@ const uid=()=> Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 /* ============ Seed drinks ============ */
 const SEEDS = [
 {id:'seed-iced-latte',seed:true,icon:'☕',cat:'coldcoffee',type:'cold',
- name:{en:'Iced Latte',th:'ไอซ์ลาเต้'}, source:{en:'Double-shot iced latte, ~350ml',th:'ไอซ์ลาเต้ดับเบิ้ลช็อต ~350ml'},
+ name:{en:'Iced Latte',th:'ไอซ์ลาเต้'}, source:'Double-shot iced latte, ~350ml',
  notes:{en:'Use fresh espresso shots — stale shots taste bitter. Chill the glass first for best results.',th:'ใช้ espresso shot สดใหม่ — shot ที่ทิ้งไว้จะขม แช่แก้วให้เย็นก่อนเพื่อผลลัพธ์ที่ดีที่สุด'},
  ingredients:[
   {name:{en:'Espresso shots',th:'Espresso shot'},amount:2,unit:'shot',cost:8},
@@ -264,7 +264,7 @@ const SEEDS = [
   {t:{en:'Build the drink',th:'ประกอบแก้ว'},d:{en:'Empty ice water. Fill glass with fresh ice. Pour milk over ice, then float espresso on top for a layered look.',th:'เทน้ำแข็ง+น้ำทิ้ง ใส่น้ำแข็งใหม่ เทนมลงบนน้ำแข็ง แล้วค่อยๆเท espresso ลงด้านบนให้เกิดชั้น'},m:0},
   {t:{en:'Add syrup & serve',th:'เติมน้ำเชื่อม & เสิร์ฟ'},d:{en:'Add sugar syrup if desired. Stir gently and serve immediately.',th:'เติมน้ำเชื่อมตามชอบ คนเบาๆ เสิร์ฟทันที'},m:0}]},
 {id:'seed-cappuccino',seed:true,icon:'☕',cat:'hotcoffee',type:'hot',
- name:{en:'Hot Cappuccino',th:'คาปูชิโน่ร้อน'}, source:{en:'Classic Italian cappuccino, ~240ml',th:'คาปูชิโน่สไตล์อิตาเลียน ~240ml'},
+ name:{en:'Hot Cappuccino',th:'คาปูชิโน่ร้อน'}, source:'Classic Italian cappuccino, ~240ml',
  notes:{en:'The key is microfoam — silky, not bubbly. Temperature: milk 60-65°C, no more.',th:'หัวใจคือ microfoam — เนียนไม่ฟองใหญ่ อุณหภูมินม 60-65°C ห้ามเกิน'},
  ingredients:[
   {name:{en:'Espresso shot',th:'Espresso shot'},amount:1,unit:'shot',cost:4},
@@ -276,7 +276,7 @@ const SEEDS = [
   {t:{en:'Steam milk',th:'สตีมนม'},d:{en:'Steam to 60-65°C. Create microfoam — silky texture, no large bubbles. Swirl and tap pitcher.',th:'สตีมถึง 60-65°C สร้าง microfoam เนื้อเนียนไม่มีฟองใหญ่ หมุนเหยือกและเคาะฟอง'},m:3},
   {t:{en:'Pour & present',th:'เท & นำเสนอ'},d:{en:'Pour milk into espresso with latte art motion. Dust with cocoa powder. Serve immediately.',th:'เทนมลง espresso แบบทำ latte art โรยผงโกโก้ เสิร์ฟทันที'},m:0}]},
 {id:'seed-matcha',seed:true,icon:'🍵',cat:'tea',type:'cold',
- name:{en:'Iced Matcha Latte',th:'มัทฉะลาเต้เย็น'}, source:{en:'Ceremonial grade matcha, ~350ml',th:'มัทฉะเกรด ceremonial ~350ml'},
+ name:{en:'Iced Matcha Latte',th:'มัทฉะลาเต้เย็น'}, source:'Ceremonial grade matcha, ~350ml',
  notes:{en:'Sift the matcha to avoid lumps. Water temp for matcha: 80°C, never boiling. Ceremonial grade tastes best iced.',th:'ร่อนมัทฉะก่อนใช้ กันเป็นก้อน น้ำชงมัทฉะ 80°C ห้ามใช้น้ำเดือด มัทฉะเกรด ceremonial อร่อยสุดตอนเย็น'},
  ingredients:[
   {name:{en:'Ceremonial matcha powder',th:'ผงมัทฉะ ceremonial'},amount:4,unit:'tsp',cost:12},
@@ -289,7 +289,7 @@ const SEEDS = [
   {t:{en:'Whisk matcha',th:'ตีมัทฉะ'},d:{en:'Add 80°C water, whisk in W motion until frothy and no clumps (~30 sec).',th:'เติมน้ำ 80°C ตีเป็น W จนขึ้นฟองเนียนไม่มีก้อน (~30 วิ)'},m:1},
   {t:{en:'Build & serve',th:'ประกอบแก้ว'},d:{en:'Fill glass with ice. Add syrup, pour milk, then pour matcha on top for a layered effect.',th:'ใส่น้ำแข็งในแก้ว เติมน้ำเชื่อม เทนม แล้วเทมัทฉะลงด้านบนให้เกิดชั้นสวย'},m:0}]},
 {id:'seed-thai-tea',seed:true,icon:'🧡',cat:'tea',type:'cold',
- name:{en:'Thai Iced Tea',th:'ชาไทยเย็น'}, source:{en:'Authentic Thai street-style, ~400ml',th:'ชาไทยสไตล์สตรีทแท้ ~400ml'},
+ name:{en:'Thai Iced Tea',th:'ชาไทยเย็น'}, source:'Authentic Thai street-style, ~400ml',
  notes:{en:'Use Thai tea leaves (cha tra mue brand preferred). Steep long for strong color. The condensed milk makes it authentic.',th:'ใช้ใบชาตรามือ (Cha Tra Mue) แช่นานให้สีเข้ม นมข้นหวานคือหัวใจของชาไทย'},
  ingredients:[
   {name:{en:'Thai tea leaves',th:'ใบชาตรามือ'},amount:4,unit:'tbsp',cost:5},
@@ -304,7 +304,7 @@ const SEEDS = [
   {t:{en:'Cool down',th:'พักให้เย็น'},d:{en:'Let tea cool to room temp (or quick-cool in ice bath).',th:'พักชาให้เย็นลงถึงอุณหภูมิห้อง (หรือแช่อ่างน้ำแข็งให้เร็ว)'},m:15},
   {t:{en:'Build & serve',th:'ประกอบแก้ว & เสิร์ฟ'},d:{en:'Fill glass with crushed ice. Pour tea over ice, add condensed milk, stir. Top with evaporated milk.',th:'ใส่น้ำแข็งเกล็ดในแก้ว เทชาลงบนน้ำแข็ง ใส่นมข้นหวาน คนให้เข้ากัน ราดนมข้นจืดด้านบน'},m:0}]},
 {id:'seed-mango-smoothie',seed:true,icon:'🥭',cat:'smoothie',type:'cold',
- name:{en:'Mango Smoothie',th:'สมูทตี้มะม่วง'}, source:{en:'Tropical mango smoothie, ~400ml',th:'สมูทตี้มะม่วงทรอปิคอล ~400ml'},
+ name:{en:'Mango Smoothie',th:'สมูทตี้มะม่วง'}, source:'Tropical mango smoothie, ~400ml',
  notes:{en:'Use ripe, sweet mangoes (Nam Dok Mai or Ataulfo). Frozen mango makes it thick and creamy without diluting.',th:'ใช้มะม่วงสุกหวาน (น้ำดอกไม้) มะม่วงแช่แข็งทำให้เนื้อข้นครีมมี่โดยไม่ต้องใส่น้ำแข็งเยอะ'},
  ingredients:[
   {name:{en:'Ripe mango (fresh or frozen)',th:'มะม่วงสุก (สดหรือแช่แข็ง)'},amount:200,unit:'ml',cost:10},
@@ -317,7 +317,7 @@ const SEEDS = [
   {t:{en:'Blend',th:'ปั่น'},d:{en:'Add mango, yogurt, milk, honey, and ice to blender. Blend until smooth and creamy (~1 min).',th:'ใส่มะม่วง โยเกิร์ต นม น้ำผึ้ง และน้ำแข็งลงโถปั่น ปั่นจนเนียน (~1 นาที)'},m:1},
   {t:{en:'Adjust & serve',th:'ปรับรส & เสิร์ฟ'},d:{en:'Taste and add honey if needed. Pour into glass, garnish with a mango slice.',th:'ชิมรส เติมน้ำผึ้งถ้าต้องการ เทใส่แก้ว ตกแต่งด้วยมะม่วงแผ่น'},m:0}]},
 {id:'seed-choc-frappe',seed:true,icon:'🍫',cat:'smoothie',type:'cold',
- name:{en:'Chocolate Frappe',th:'ช็อกโกแลตปั่น'}, source:{en:'Blended chocolate frappe, ~400ml',th:'ช็อกโกแลตปั่น ~400ml'},
+ name:{en:'Chocolate Frappe',th:'ช็อกโกแลตปั่น'}, source:'Blended chocolate frappe, ~400ml',
  notes:{en:'Use good-quality cocoa or chocolate sauce. Top with whipped cream for the full cafe experience.',th:'ใช้โกโก้หรือซอสช็อกโกแลตคุณภาพดี ท็อปด้วยวิปครีมเพื่อประสบการณ์คาเฟ่เต็มรูปแบบ'},
  ingredients:[
   {name:{en:"Chocolate sauce",th:"ซอสช็อกโกแลต"},amount:40,unit:"ml",cost:4,sweetener:true},
@@ -331,7 +331,7 @@ const SEEDS = [
   {t:{en:'Blend',th:'ปั่น'},d:{en:'Add chocolate sauce, cocoa, milk, syrup, and ice to blender. Blend until smooth. Drizzle chocolate inside glass for decoration.',th:'ใส่ซอสช็อกฯ โกโก้ นม น้ำเชื่อม และน้ำแข็งลงโถปั่น ปั่นจนเนียน ราดซอสช็อกฯ ข้างแก้วเพื่อตกแต่ง'},m:1},
   {t:{en:'Top & serve',th:'ท็อปปิ้ง & เสิร์ฟ'},d:{en:'Pour into glass. Top with whipped cream and chocolate drizzle.',th:'เทใส่แก้ว ท็อปด้วยวิปครีมและราดซอสช็อกฯ'},m:0}]},
 {id:'seed-blue-soda',seed:true,icon:'🫧',cat:'soda',type:'cold',
- name:{en:'Blue Curacao Soda',th:'บลูคูราเซาโซดา'}, source:{en:'Vibrant blue refresher, ~350ml',th:'บลูคูราเซาโซดาสีฟ้าสดใส ~350ml'},
+ name:{en:'Blue Curacao Soda',th:'บลูคูราเซาโซดา'}, source:'Vibrant blue refresher, ~350ml',
  notes:{en:'Build in order for the gradient effect. Stir only when ready to drink.',th:'เรียงตามลำดับให้เกิด gradient คนตอนพร้อมดื่มเท่านั้น'},
  ingredients:[
   {name:{en:'Blue curacao syrup',th:'บลูคูราเซาไซรัป'},amount:30,unit:'ml',cost:4},
@@ -343,7 +343,7 @@ const SEEDS = [
   {t:{en:'Build the drink',th:'ประกอบแก้ว'},d:{en:'Fill glass with ice. Pour blue curacao syrup over ice. Add fresh lemon juice — it will sink and create a color gradient.',th:'ใส่น้ำแข็งในแก้ว เทบลูคูราเซาไซรัปลงบนน้ำแข็ง ใส่น้ำมะนาวสด — มันจะจมลงและเกิด gradient สีสวย'},m:0},
   {t:{en:'Top & garnish',th:'เติมโซดา & ตกแต่ง'},d:{en:'Slowly top with soda water. Garnish with lemon slice on rim.',th:'ค่อยๆเติมโซดา ตกแต่งด้วยมะนาวฝานที่ขอบแก้ว'},m:0}]},
 {id:'seed-dirty-coffee',seed:true,icon:'✨',cat:'special',type:'cold',
- name:{en:'Dirty Coffee',th:'เดอร์ตี้คอฟฟี่'}, source:{en:'Trendy layered espresso over cold milk, ~300ml',th:'เอสเพรสโซ่ชั้นนมเย็นสไตล์เกาหลี ~300ml'},
+ name:{en:'Dirty Coffee',th:'เดอร์ตี้คอฟฟี่'}, source:'Trendy layered espresso over cold milk, ~300ml',
  notes:{en:'The secret is VERY cold milk and a hot espresso shot pulled directly over it — the temperature contrast creates the "dirty" effect.',th:'ความลับคือนมเย็นจัดมากๆ และ shot espresso ร้อนที่ดึงลงบนนมโดยตรง — ความต่างของอุณหภูมิสร้างเอฟเฟกต์ "dirty"'},
  ingredients:[
   {name:{en:'Espresso shot (double)',th:'Espresso shot (ดับเบิ้ล)'},amount:2,unit:'shot',cost:8},
@@ -479,7 +479,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
   <button class="iconbtn" onclick="go('drinks')" style="margin-bottom:12px">‹ ${t('nav_drinks')}</button>
   <div class="row"><div style="font-size:42px">${r.icon||ICONS[r.cat]||'🥤'}</div>
     <div class="grow"><h1 style="margin:0;font-size:26px">${esc(tn(r.name))}</h1>
-    <div class="note">${esc(tn(r.source))}</div></div></div>
+    <div class="note">${esc(r.source||'')}</div></div></div>
   ${r.notes?`<div class="card flat" style="margin-top:12px;background:var(--surface2);border-style:dashed">💡 ${esc(tn(r.notes))}</div>`:''}
   <div class="card" style="margin-top:12px">
     <h3 style="margin-bottom:4px">🥤 ${t('cup_size')}</h3>
@@ -534,7 +534,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
 async function shareDrink(id){
   const r=await dbGet('drinks',id); if(!r)return;
   let txt='☕ '+tn(r.name)+'\n';
-  if(r.source) txt+='📖 '+tn(r.source)+'\n';
+  if(r.source) txt+='📖 '+r.source+'\n';
   txt+='\n📋 '+t('ingredients')+':\n';
   r.ingredients.forEach(i=>{ txt+='  • '+tn(i.name)+': '+i.amount+' '+i.unit+' ('+i.cost+' ฿)\n'; });
   txt+='\n📝 '+t('steps')+':\n';
@@ -568,12 +568,12 @@ async function drinkEditor(id){
     ed = JSON.parse(JSON.stringify(await dbGet('drinks',id)));
     ed.seed=false;
     const toBL = (v,def) => typeof v==='string' ? {en:v, th:v} : (v&&typeof v==='object' ? {en:v.en||def, th:v.th||v.en||def} : {en:def, th:def});
-    ed.name=toBL(ed.name,''); ed.notes=toBL(ed.notes,''); ed.source=toBL(ed.source,'');
+    ed.name=toBL(ed.name,''); ed.notes=toBL(ed.notes,'');
     ed.ingredients.forEach(i=>{i.name=toBL(i.name,'');});
     ed.steps.forEach(s=>{s.t=toBL(s.t,''); s.d=toBL(s.d,'');});
   } else {
     ed={id:uid(),icon:'🥤',cat:'coldcoffee',type:'cold',
-        name:{en:'',th:''},source:{en:'',th:''},notes:{en:'',th:''},serves:1,
+        name:{en:'',th:''},source:'',notes:{en:'',th:''},serves:1,
         ingredients:[{name:{en:'',th:''},amount:0,unit:'ml',cost:0}],
         steps:[{t:{en:'',th:''},d:{en:'',th:''},m:0}]};
   }
@@ -603,8 +603,7 @@ function edRender(){
   <select id="edType"><option value="hot" ${ed.type==='hot'?'selected':''}>${t('type_hot')}</option>
   <option value="cold" ${ed.type==='cold'?'selected':''}>${t('type_cold')}</option></select>
   <label class="f">${t('serve_size_label')}</label><input id="edServes" type="number" inputmode="numeric" min="1" value="${ed.serves||1}">
-  <label class="f">${t('source')} <span class="note">[${edLang.toUpperCase()}]</span></label>
-  <input id="edSrc" value="${esc((ed.source||{})[edLang]||'')}">
+  <label class="f">${t('source')}</label><input id="edSrc" value="${esc(ed.source||'')}">
   <label class="f">${t('notes_opt')} <span class="note">[${edLang.toUpperCase()}]</span></label>
   <textarea id="edNotes" rows="2">${esc((ed.notes||{})[edLang]||'')}</textarea>
   <label class="f">${t('ingredients')} <span class="note">[${edLang.toUpperCase()}]</span></label>
@@ -634,9 +633,9 @@ function edRender(){
 function edSync(){
   ed.name=ed.name||{en:'',th:''}; ed.name[edLang]=$('#edName')?.value??(ed.name[edLang]||'');
   ed.notes=ed.notes||{en:'',th:''}; ed.notes[edLang]=$('#edNotes')?.value??(ed.notes[edLang]||'');
-  ed.source=ed.source||{en:'',th:''}; ed.source[edLang]=$('#edSrc')?.value??(ed.source[edLang]||'');
   ed.cat=$('#edCat')?.value??ed.cat; ed.icon=$('#edIcon')?.value??ed.icon;
-  ed.type=$('#edType')?.value??ed.type; ed.serves=+$('#edServes')?.value||1;
+  ed.type=$('#edType')?.value??ed.type; ed.source=$('#edSrc')?.value??ed.source;
+  ed.serves=+$('#edServes')?.value||1;
 }
 async function edSave(){
   edSync();
@@ -654,7 +653,7 @@ const AI_SCHEMA=`{
   "type": "hot | cold",
   "icon": "one emoji",
   "serves": 1,
-  "source": {"en": "original source / URL", "th": "ที่มา / URL"},
+  "source": "original source / URL",
   "notes": {"en": "key tips in one or two sentences", "th": "เคล็ดลับสั้นๆ 1-2 ประโยค"},
   "ingredients": [ {"name": {"en": "Espresso shot", "th": "เอสเพรสโซ่ช็อต"}, "amount": 2, "unit": "shot", "cost": 8}, {"name": {"en": "Sugar syrup", "th": "น้ำเชื่อม"}, "amount": 15, "unit": "ml", "cost": 0.5, "sweetener": true}, {"name": {"en": "Milk", "th": "นม"}, "amount": 200, "unit": "ml", "cost": 6} ],
   "steps": [ {"t": {"en": "Step title", "th": "ชื่อขั้นตอน"}, "d": {"en": "What to do", "th": "วิธีทำ"}, "m": 0} ]
@@ -695,7 +694,7 @@ async function aiDoImport(){
     const bl = v => typeof v==='string' ? {en:v, th:v} : {en:String((v||{}).en||''), th:String((v||{}).th||(v||{}).en||'')};
     const r={id:uid(),seed:false,icon:j.icon||'🥤',cat:CATS.includes(j.cat)?j.cat:'coldcoffee',
       type:j.type==='hot'?'hot':'cold',name:bl(j.name),serves:j.serves||1,
-      source:bl(j.source||''),notes:bl(j.notes),
+      source:String(j.source||''),notes:bl(j.notes),
       ingredients:(j.ingredients||[]).map(i=>({name:bl(i.name),amount:+i.amount||0,unit:String(i.unit||'ml'),cost:+i.cost||0,sweetener:!!i.sweetener})),
       steps:(j.steps||[]).map(s=>({t:bl(s.t),d:bl(s.d),m:+s.m||0}))};
     if(!r.ingredients.length||!r.steps.length)throw 0;
