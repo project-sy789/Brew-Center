@@ -562,21 +562,32 @@ async function delDrink(id){
 }
 
 /* ============ Drink editor ============ */
-let ed=null;
+let ed=null, edLang=LANG;
 async function drinkEditor(id){
-  ed = id ? JSON.parse(JSON.stringify(await dbGet('drinks',id)))
-          : {id:uid(),icon:'🥤',cat:'coldcoffee',type:'cold',name:'',source:'',notes:'',serves:1,
-             ingredients:[{name:'',amount:0,unit:'ml',cost:0}],steps:[{t:'',d:'',m:0}]};
-  if(id){ed.seed=false; if(typeof ed.name==='object')ed.name=tn(ed.name);
-    if(typeof ed.notes==='object')ed.notes=tn(ed.notes);
-    ed.ingredients.forEach(i=>{if(typeof i.name==='object')i.name=tn(i.name)});
-    ed.steps.forEach(s=>{if(typeof s.t==='object')s.t=tn(s.t); if(typeof s.d==='object')s.d=tn(s.d)});
+  if(id){
+    ed = JSON.parse(JSON.stringify(await dbGet('drinks',id)));
+    ed.seed=false;
+    const toBL = (v,def) => typeof v==='string' ? {en:v, th:v} : (v&&typeof v==='object' ? {en:v.en||def, th:v.th||v.en||def} : {en:def, th:def});
+    ed.name=toBL(ed.name,''); ed.notes=toBL(ed.notes,'');
+    ed.ingredients.forEach(i=>{i.name=toBL(i.name,'');});
+    ed.steps.forEach(s=>{s.t=toBL(s.t,''); s.d=toBL(s.d,'');});
+  } else {
+    ed={id:uid(),icon:'🥤',cat:'coldcoffee',type:'cold',
+        name:{en:'',th:''},source:'',notes:{en:'',th:''},serves:1,
+        ingredients:[{name:{en:'',th:''},amount:0,unit:'ml',cost:0}],
+        steps:[{t:{en:'',th:''},d:{en:'',th:''},m:0}]};
   }
-  edRender();
+  edLang=LANG; edRender();
 }
 function edRender(){
-  modal(`<h2>${ed.nameSaved?t('edit'):t('add_drink')}</h2>
-  <label class="f">${t('name')}</label><input id="edName" value="${esc(ed.name)}">
+  modal(`<div class="row" style="margin-bottom:12px">
+    <h2 style="margin:0">${ed.nameSaved?t('edit'):t('add_drink')}</h2>
+    <div class="seg" style="margin-left:auto">
+      <button class="${edLang==='en'?'on':''}" onclick="edSync();edLang='en';edRender()">EN</button>
+      <button class="${edLang==='th'?'on':''}" onclick="edSync();edLang='th';edRender()">TH</button>
+    </div></div>
+  <label class="f">${t('name')} <span class="note">[${edLang.toUpperCase()}]</span></label>
+  <input id="edName" value="${esc((ed.name||{})[edLang]||'')}">
   <div class="row" style="margin-top:12px">
     <div class="grow"><label class="f" style="margin-top:0">${t('category')}</label>
       <select id="edCat">${CATS.map(c=>`<option value="${c}" ${ed.cat===c?'selected':''}>${catName(c)}</option>`).join('')}</select></div>
@@ -593,10 +604,11 @@ function edRender(){
   <option value="cold" ${ed.type==='cold'?'selected':''}>${t('type_cold')}</option></select>
   <label class="f">${t('serve_size_label')}</label><input id="edServes" type="number" inputmode="numeric" min="1" value="${ed.serves||1}">
   <label class="f">${t('source')}</label><input id="edSrc" value="${esc(ed.source||'')}">
-  <label class="f">${t('notes_opt')}</label><textarea id="edNotes" rows="2">${esc(ed.notes||'')}</textarea>
-  <label class="f">${t('ingredients')}</label>
+  <label class="f">${t('notes_opt')} <span class="note">[${edLang.toUpperCase()}]</span></label>
+  <textarea id="edNotes" rows="2">${esc((ed.notes||{})[edLang]||'')}</textarea>
+  <label class="f">${t('ingredients')} <span class="note">[${edLang.toUpperCase()}]</span></label>
   <div id="edIngs">${ed.ingredients.map((i,x)=>`<div class="row" style="margin-bottom:8px">
-    <input class="grow" placeholder="${t('ingredient_name')}" value="${esc(i.name)}" onchange="ed.ingredients[${x}].name=this.value">
+    <input class="grow" placeholder="${t('ingredient_name')}" value="${esc((i.name||{})[edLang]||'')}" onchange="ed.ingredients[${x}].name[edLang]=this.value">
     <input type="number" inputmode="decimal" style="width:72px" placeholder="Amt" min="0" value="${i.amount||''}" onchange="ed.ingredients[${x}].amount=+this.value||0">
     <select style="width:72px" onchange="ed.ingredients[${x}].unit=this.value">
       ${['ml','shot','tbsp','tsp','cup','oz','slice','g'].map(u=>`<option value="${u}" ${i.unit===u?'selected':''}>${u}</option>`).join('')}</select>
@@ -604,45 +616,47 @@ function edRender(){
     <label style="font-size:12px;display:flex;flex-direction:column;align-items:center;gap:2px">🍬
       <input type="checkbox" style="width:20px;height:20px" ${i.sweetener?'checked':''} onchange="ed.ingredients[${x}].sweetener=this.checked"></label>
     <button class="del-x" onclick="ed.ingredients.splice(${x},1);edSync();edRender()">✕</button></div>`).join('')}</div>
-  <button class="btn ghost" onclick="edSync();ed.ingredients.push({name:'',amount:0,unit:'ml',cost:0});edRender()">${t('add_ing')}</button>
-  <label class="f">${t('steps')}</label>
+  <button class="btn ghost" onclick="edSync();ed.ingredients.push({name:{en:'',th:''},amount:0,unit:'ml',cost:0});edRender()">${t('add_ing')}</button>
+  <label class="f">${t('steps')} <span class="note">[${edLang.toUpperCase()}]</span></label>
   <div id="edSteps">${ed.steps.map((s,x)=>`<div class="card flat" style="padding:10px;margin-bottom:8px">
     <div class="row"><b style="color:var(--accent)">${x+1}</b>
-      <input class="grow" placeholder="${t('step_title')}" value="${esc(s.t)}" onchange="ed.steps[${x}].t=this.value">
+      <input class="grow" placeholder="${t('step_title')}" value="${esc((s.t||{})[edLang]||'')}" onchange="ed.steps[${x}].t[edLang]=this.value">
       <input type="number" inputmode="numeric" style="width:74px" placeholder="${t('minutes')}" min="0" step="0.5" value="${s.m||''}" onchange="ed.steps[${x}].m=+this.value||0">
       <button class="del-x" onclick="ed.steps.splice(${x},1);edSync();edRender()">✕</button></div>
-    <input style="margin-top:8px" placeholder="${t('step_desc')}" value="${esc(s.d)}" onchange="ed.steps[${x}].d=this.value"></div>`).join('')}</div>
-  <button class="btn ghost" onclick="edSync();ed.steps.push({t:'',d:'',m:0});edRender()">${t('add_step')}</button>
+    <input style="margin-top:8px" placeholder="${t('step_desc')}" value="${esc((s.d||{})[edLang]||'')}" onchange="ed.steps[${x}].d[edLang]=this.value"></div>`).join('')}</div>
+  <button class="btn ghost" onclick="edSync();ed.steps.push({t:{en:'',th:''},d:{en:'',th:''},m:0});edRender()">${t('add_step')}</button>
   <div class="row" style="margin-top:20px">
     <button class="btn ghost grow" onclick="closeModal()">${t('cancel')}</button>
     <button class="btn grow" onclick="edSave()">${t('save')}</button>
   </div>`);
 }
 function edSync(){
-  ed.name=$('#edName')?.value??ed.name; ed.cat=$('#edCat')?.value??ed.cat;
-  ed.icon=$('#edIcon')?.value??ed.icon; ed.type=$('#edType')?.value??ed.type;
-  ed.source=$('#edSrc')?.value??ed.source; ed.notes=$('#edNotes')?.value??ed.notes;
+  ed.name=ed.name||{en:'',th:''}; ed.name[edLang]=$('#edName')?.value??(ed.name[edLang]||'');
+  ed.notes=ed.notes||{en:'',th:''}; ed.notes[edLang]=$('#edNotes')?.value??(ed.notes[edLang]||'');
+  ed.cat=$('#edCat')?.value??ed.cat; ed.icon=$('#edIcon')?.value??ed.icon;
+  ed.type=$('#edType')?.value??ed.type; ed.source=$('#edSrc')?.value??ed.source;
   ed.serves=+$('#edServes')?.value||1;
 }
 async function edSave(){
   edSync();
-  if(!ed.name.trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อเมนู');
-  ed.ingredients=ed.ingredients.filter(i=>String(i.name).trim());
-  ed.steps=ed.steps.filter(s=>String(s.t).trim());
+  const nm=ed.name||{};
+  if(!(nm.en||'').trim()&&!(nm.th||'').trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อเมนู');
+  ed.ingredients=ed.ingredients.filter(i=>{const n=i.name||{};return String(n.en||n.th||'').trim();});
+  ed.steps=ed.steps.filter(s=>{const st=s.t||{};return String(st.en||st.th||'').trim();});
   await dbPut('drinks',ed); closeModal(); toast(t('data_saved')); vDrinkDetail(ed.id);
 }
 
 /* ============ AI Import ============ */
 const AI_SCHEMA=`{
-  "name": "Drink name",
+  "name": {"en": "Drink name", "th": "ชื่อเมนู"},
   "cat": "hotcoffee | coldcoffee | tea | smoothie | soda | special",
   "type": "hot | cold",
   "icon": "one emoji",
   "serves": 1,
   "source": "original source / URL",
-  "notes": "key tips in one or two sentences",
-  "ingredients": [ {"name": "Espresso shot", "amount": 2, "unit": "shot", "cost": 8}, {"name": "Sugar syrup", "amount": 15, "unit": "ml", "cost": 0.5, "sweetener": true}, {"name": "Milk", "amount": 200, "unit": "ml", "cost": 6} ],
-  "steps": [ {"t": "Step title", "d": "What to do", "m": 0} ]
+  "notes": {"en": "key tips in one or two sentences", "th": "เคล็ดลับสั้นๆ 1-2 ประโยค"},
+  "ingredients": [ {"name": {"en": "Espresso shot", "th": "เอสเพรสโซ่ช็อต"}, "amount": 2, "unit": "shot", "cost": 8}, {"name": {"en": "Sugar syrup", "th": "น้ำเชื่อม"}, "amount": 15, "unit": "ml", "cost": 0.5, "sweetener": true}, {"name": {"en": "Milk", "th": "นม"}, "amount": 200, "unit": "ml", "cost": 6} ],
+  "steps": [ {"t": {"en": "Step title", "th": "ชื่อขั้นตอน"}, "d": {"en": "What to do", "th": "วิธีทำ"}, "m": 0} ]
 }`;
 function aiPrompt(){return `You are a drink-recipe structuring assistant for a cafe app (Brew Center). Convert the drink recipe into EXACTLY this JSON format and output ONLY the JSON (no markdown, no explanation):
 
@@ -656,7 +670,8 @@ Rules:
 - Do NOT include ice as an ingredient — the app has ice level control (No Ice / Regular 30% / Extra 50% / Fill mode).
 - "icon": pick ONE emoji that best represents the drink (☕🍵🥤🫧✨🍫🥭🧡🍋).
 - Keep step titles short (2-5 words); put details in "d".
-- Respond in ${LANG==='th'?'Thai (keep coffee terms like espresso, shot, latte art in English)':'English'}.
+- Provide ALL text fields (name, notes, ingredient names, step titles, step descriptions) in BOTH English (en) and Thai (th) using the format {"en": "...", "th": "..."}.
+- Respond in ${LANG==='th'?'Thai (keep coffee terms like espresso, shot, latte art in English)':'English'}.`;
 
 Here is the drink recipe:
 `;}
@@ -676,11 +691,12 @@ async function aiDoImport(){
   let txt=$('#aiJson').value.trim().replace(/^```json?/i,'').replace(/```$/,'').trim();
   try{
     const j=JSON.parse(txt);
+    const bl = v => typeof v==='string' ? {en:v, th:v} : {en:String((v||{}).en||''), th:String((v||{}).th||(v||{}).en||'')};
     const r={id:uid(),seed:false,icon:j.icon||'🥤',cat:CATS.includes(j.cat)?j.cat:'coldcoffee',
-      type:j.type==='hot'?'hot':'cold',name:String(j.name||'Imported drink'),serves:j.serves||1,
-      source:String(j.source||''),notes:String(j.notes||''),
-      ingredients:(j.ingredients||[]).map(i=>({name:String(i.name||''),amount:+i.amount||0,unit:String(i.unit||'ml'),cost:+i.cost||0,sweetener:!!i.sweetener})),
-      steps:(j.steps||[]).map(s=>({t:String(s.t||''),d:String(s.d||''),m:+s.m||0}))};
+      type:j.type==='hot'?'hot':'cold',name:bl(j.name),serves:j.serves||1,
+      source:String(j.source||''),notes:bl(j.notes),
+      ingredients:(j.ingredients||[]).map(i=>({name:bl(i.name),amount:+i.amount||0,unit:String(i.unit||'ml'),cost:+i.cost||0,sweetener:!!i.sweetener})),
+      steps:(j.steps||[]).map(s=>({t:bl(s.t),d:bl(s.d),m:+s.m||0}))};
     if(!r.ingredients.length||!r.steps.length)throw 0;
     await dbPut('drinks',r); closeModal(); toast(t('data_saved')); vDrinkDetail(r.id);
   }catch(e){toast(t('invalid_json'));}
