@@ -496,12 +496,12 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
 
     <h3 style="margin-top:14px;margin-bottom:4px">🧊 ${t('ice_level')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[{k:'none',v:0},{k:'fill',v:-1},{k:'regular',v:0.3},{k:'extra',v:0.5}].map(o=>`<button class="${curIce===o.v?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${curSweetness},${o.v},${JSON.stringify(curCup)})">${t('ice_'+o.k)}</button>`).join('')}
+      ${[{k:'none',v:0},{k:'fill',v:-1},{k:'regular',v:0.3},{k:'extra',v:0.5}].map(o=>`<button class="${curIce===o.v?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${curSweetness},${o.v},${curCup!=null?`\'${curCup}\'`:'null'})">${t('ice_'+o.k)}</button>`).join('')}
     </div>
     ${r.ingredients.some(i=>i.sweetener)?`
     <h3 style="margin-top:14px;margin-bottom:4px">🍬 ${t('sweetness')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m},${curIce},${JSON.stringify(curCup)})">${t('sweetness_'+(m*100))}</button>`).join('')}
+      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m},${curIce},${curCup!=null?`\'${curCup}\'`:'null'})">${t('sweetness_'+(m*100))}</button>`).join('')}
     </div>`:''}
     <div class="result-box" style="margin-top:10px">
       <div class="note">${t('total_volume')} · ${t('cost_est')}</div>
