@@ -227,6 +227,7 @@ const I18N = {
 let LANG = 'en';
 const t = k => (I18N[k]||[k,k])[LANG==='en'?0:1];
 const tn = obj => typeof obj==='string' ? obj : (obj?.[LANG] || obj?.en || obj?.th || '');
+const isIce=i=>(tn(i.name)||'').toLowerCase().includes('ice')||(tn(i.name)||'').toLowerCase().includes('น้ำแข็ง');
 
 /* ============ IndexedDB ============ */
 const DB_NAME='brew-center', DB_VER=1;
@@ -461,7 +462,6 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
     curScale=scale!==undefined?scale:curScale; curSweetness=sweetness!==undefined?sweetness:curSweetness;
     curIce=ice!==undefined?ice:curIce; curCup=cup!==undefined?cup:curCup;
   }
-  const isIce=i=>(tn(i.name)||"").toLowerCase().includes("ice")||(tn(i.name)||"").toLowerCase().includes("น้ำแข็ง");
   const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(i.sweetener?curSweetness:1),0);
   const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(isIce(i)?0:1)*(i.sweetener?curSweetness:1),0);
   // curIce < 0 = fill mode (Thai style): brew liquid at recipe strength, ice fills remaining space in glass
@@ -830,7 +830,6 @@ async function finishBrew(){
 
 async function autoDeductStock(r, scale, sweetness, ice){
   const stock=await dbAll('stock'); if(!stock.length)return;
-  const isIce=i=>(tn(i.name)||'').toLowerCase().includes('ice')||(tn(i.name)||'').toLowerCase().includes('น้ำแข็ง');
   const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*scale*(isIce(i)?0:1)*(i.sweetener?sweetness:1),0);
   const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*scale*(i.sweetener?sweetness:1),0);
   const fillMode=ice<0;
