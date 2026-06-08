@@ -128,8 +128,8 @@ pre.code{background:var(--surface2); border:1px solid var(--line); border-radius
 .toolgrid .card h3{font-size:15.5px; margin:0}
 .result-box{background:var(--surface2); border-radius:var(--r-s); padding:14px; text-align:center; margin-top:14px}
 .result-box .v{font-family:'Fraunces',serif; font-size:34px; font-weight:700; color:var(--primary)}
-.feeditem{display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line)}
-.feeditem .dot{width:12px; height:12px; border-radius:50%; background:var(--gold); margin-top:6px; flex-shrink:0}
+.feeditem{display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); align-items:center}
+.feeditem .dot{width:10px; height:10px; border-radius:50%; background:var(--gold); flex-shrink:0}
 .toast{position:fixed; bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); padding:11px 20px; border-radius:999px; font-weight:600; z-index:90; animation:fade .2s; max-width:88vw; text-align:center}
 .del-x{border:none; background:none; color:var(--accent); font-size:20px; cursor:pointer; padding:4px 8px}
 .badge{display:inline-block; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; background:var(--ok); color:#fff; margin-left:6px}
@@ -998,16 +998,16 @@ async function vStock(){
     <button class="btn grow" onclick="stockEditor()">📦 ${t('stock_add')}</button>
     <button class="btn ghost" onclick="importStockFromMenu()" title="${LANG==='en'?'Scan all drink recipes and create stock items':'สแกนสูตรทั้งหมดเพื่อสร้างรายการสต็อก'}">📋 ↳</button>
   </div>
-  <div class="card" style="margin-top:14px">
-    ${items.map(s=>{const low=s.min&&s.qty<=s.min;
-      return `<div class="feeditem" style="cursor:pointer" onclick="stockEditor('${s.id}')"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
+  <div class="card" style="margin-top:14px;padding:0">
+    ${items.map((s,i)=>{const low=s.min&&s.qty<=s.min;
+      return `<div class="feeditem" style="cursor:pointer;padding:14px 16px;${i===0?'border-top:none':''}" onclick="stockEditor('${s.id}')"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
       <div class="grow"><b>${esc(s.name)}</b> ${low?`<span class="badge" style="background:var(--accent)">${t('low_stock')}</span>`:''}
         <div class="note">${s.qty} ${s.unit||''} ${s.cost!=null?`· ${s.cost} ฿/${s.unit||'unit'}`:''} ${s.min?`· Min: ${s.min} ${s.unit||''}`:''}</div>
         ${s.note?`<div class="note">${esc(s.note)}</div>`:''}
         <div class="note" style="font-size:11px">${s.updated?new Date(s.updated).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div></div>
-      <button class="iconbtn" style="border:none;min-width:32px;height:32px;font-size:16px" onclick="event.stopPropagation();stockEditor('${s.id}')">✎</button>
-      <button class="del-x" onclick="event.stopPropagation();delStock('${s.id}')">✕</button></div>`}).join('')
-     || `<div class="empty"><div class="big">📦</div>${t('no_stock')}</div>`}
+      <button class="iconbtn" style="border:none;min-width:32px;height:32px;font-size:16px;flex-shrink:0" onclick="event.stopPropagation();stockEditor('${s.id}')">✎</button>
+      <button class="del-x" style="flex-shrink:0" onclick="event.stopPropagation();delStock('${s.id}')">✕</button></div>`}).join('')
+     || `<div class="empty" style="padding:24px 16px"><div class="big">📦</div>${t('no_stock')}</div>`}
   </div>`;
 }
 async function stockEditor(id){
