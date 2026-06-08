@@ -353,7 +353,19 @@ const SEEDS = [
  steps:[
   {t:{en:'Chill everything',th:'แช่ทุกอย่างให้เย็น'},d:{en:'Pre-chill the serving glass in freezer. Make sure milk is very cold (~2°C).',th:'แช่แก้วในฟรีซ เอานมให้เย็นจัด (~2°C)'},m:0},
   {t:{en:'Pour cold milk',th:'เทนมเย็น'},d:{en:'Pour ice-cold milk into the chilled glass. Add ice if using.',th:'เทนมเย็นจัดใส่แก้วแช่เย็น ใส่น้ำแข็งถ้าต้องการ'},m:0},
-  {t:{en:'Pull espresso directly over',th:'ดึง espresso ลงบนนมโดยตรง'},d:{en:'Position the glass so espresso drips directly onto the milk surface. The hot espresso floats briefly creating the "dirty" layer. Serve immediately — no stirring!',th:'วางแก้วให้ espresso หยดลงบนผิวนมโดยตรง espresso ร้อนจะลอยอยู่ด้านบนชั่วครู่ สร้างชั้น "dirty" เสิร์ฟทันที ห้ามคน!'},m:1}]}
+  {t:{en:'Pull espresso directly over',th:'ดึง espresso ลงบนนมโดยตรง'},d:{en:'Position the glass so espresso drips directly onto the milk surface. The hot espresso floats briefly creating the "dirty" layer. Serve immediately — no stirring!',th:'วางแก้วให้ espresso หยดลงบนผิวนมโดยตรง espresso ร้อนจะลอยอยู่ด้านบนชั่วครู่ สร้างชั้น "dirty" เสิร์ฟทันที ห้ามคน!'},m:1}]},
+{id:'seed-pink-milk',seed:true,icon:'🥛',cat:'special',type:'cold',sweetMin:0.25,
+ name:{en:'Pink Milk',th:'นมชมพู'}, source:'Thai Cafe Recipe',
+ notes:{en:'Mix the ingredients thoroughly while warm to achieve a perfectly smooth, beautiful pink color.',th:'คนส่วนผสมให้ละลายเข้ากันดีเพื่อให้ได้สีชมพูที่เนียนสวยและสม่ำเสมอกัน'},
+ ingredients:[
+  {name:{en:'Red sala syrup',th:'น้ำหวานกลิ่นสละ'},amount:45,unit:'ml',cost:3,sweetener:true},
+  {name:{en:'Sweetened condensed milk',th:'นมข้นหวาน'},amount:30,unit:'ml',cost:4,sweetener:true},
+  {name:{en:'Evaporated milk',th:'นมข้นจืด'},amount:30,unit:'ml',cost:3},
+  {name:{en:'Fresh milk',th:'นมสด'},amount:120,unit:'ml',cost:5}],
+ steps:[
+  {t:{en:'Mix Base Syrup',th:'ผสมน้ำหวานเบส'},d:{en:'Pour red sala syrup and sweetened condensed milk into a mixing cup, then stir well.',th:'เทน้ำหวานกลิ่นสละและนมข้นหวานลงในแก้วผสม จากนั้นคนให้เข้ากัน'},m:0},
+  {t:{en:'Add Dairy',th:'เติมนม'},d:{en:'Add fresh milk and evaporated milk into the mixture. Stir until the color is consistent.',th:'เติมนมสดและนมข้นจืดลงไปในส่วนผสม คนให้เข้ากันจนสีเนียนสม่ำเสมอ'},m:0},
+  {t:{en:'Ready to Serve',th:'พร้อมเสิร์ฟ'},d:{en:'Pour the pink milk into a serving cup. The app will handle the ice level automatically.',th:'เทนมชมพูลงในแก้วพร้อมเสิร์ฟ ตัวแอปจะคำนวณการใส่น้ำแข็งตามที่ลูกค้าเลือก'},m:0}]}
 ];
 
 /* ============ App state & helpers ============ */
@@ -462,6 +474,8 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
     curScale=scale!==undefined?scale:curScale; curSweetness=sweetness!==undefined?sweetness:curSweetness;
     curIce=ice!==undefined?ice:curIce; curCup=cup!==undefined?cup:curCup;
   }
+  // Clamp sweetness to recipe minimum
+  const sweetFloor=r.sweetMin||0; if(curSweetness<sweetFloor)curSweetness=sweetFloor;
   const fullVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(i.sweetener?curSweetness:1),0);
   const nonIceVol=r.ingredients.reduce((a,i)=>a+(i.amount||0)*mlPerUnit(i)*curScale*(isIce(i)?0:1)*(i.sweetener?curSweetness:1),0);
   // curIce < 0 = fill mode (Thai style): brew liquid at recipe strength, ice fills remaining space in glass
@@ -501,7 +515,7 @@ async function vDrinkDetail(id,scale,sweetness,ice,cup){
     ${r.ingredients.some(i=>i.sweetener)?`
     <h3 style="margin-top:14px;margin-bottom:4px">🍬 ${t('sweetness')}</h3>
     <div class="seg" style="margin:10px 0">
-      ${[0,0.25,0.5,0.75,1].map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m},${curIce},${curCup!=null?`\'${curCup}\'`:'null'})">${t('sweetness_'+(m*100))}</button>`).join('')}
+      ${[0,0.25,0.5,0.75,1].filter(m=>m>=(r.sweetMin||0)).map(m=>`<button class="${curSweetness===m?'on':''}" onclick="vDrinkDetail('${id}',${curScale},${m},${curIce},${curCup!=null?`\'${curCup}\'`:'null'})">${t('sweetness_'+(m*100))}</button>`).join('')}
     </div>`:''}
     <div class="result-box" style="margin-top:10px">
       <div class="note">${t('total_volume')} · ${t('cost_est')}</div>
@@ -573,7 +587,7 @@ async function drinkEditor(id){
     ed.steps.forEach(s=>{s.t=toBL(s.t,''); s.d=toBL(s.d,'');});
   } else {
     ed={id:uid(),icon:'🥤',cat:'coldcoffee',type:'cold',
-        name:{en:'',th:''},source:'',notes:{en:'',th:''},serves:1,
+        name:{en:'',th:''},source:'',notes:{en:'',th:''},serves:1,sweetMin:0,
         ingredients:[{name:{en:'',th:''},amount:0,unit:'ml',cost:0}],
         steps:[{t:{en:'',th:''},d:{en:'',th:''},m:0}]};
   }
@@ -603,6 +617,8 @@ function edRender(){
   <select id="edType"><option value="hot" ${ed.type==='hot'?'selected':''}>${t('type_hot')}</option>
   <option value="cold" ${ed.type==='cold'?'selected':''}>${t('type_cold')}</option></select>
   <label class="f">${t('serve_size_label')}</label><input id="edServes" type="number" inputmode="numeric" min="1" value="${ed.serves||1}">
+  <label class="f">🍬 ${LANG==='en'?'Min Sweetness':'ความหวานขั้นต่ำ'} <span class="note">${LANG==='en'?'(0=allow 0%, 0.25=25% min, etc.)':'(0=ปรับ 0% ได้, 0.25=ต่ำสุด 25%)'}</span></label>
+  <select id="edSweetMin">${[0,0.25,0.5,0.75].map(v=>`<option value="${v}" ${(ed.sweetMin||0)===v?'selected':''}>${v*100}%</option>`).join('')}</select>
   <label class="f">${t('source')}</label><input id="edSrc" value="${esc(ed.source||'')}">
   <label class="f">${t('notes_opt')} <span class="note">[${edLang.toUpperCase()}]</span></label>
   <textarea id="edNotes" rows="2">${esc((ed.notes||{})[edLang]||'')}</textarea>
@@ -636,6 +652,7 @@ function edSync(){
   ed.cat=$('#edCat')?.value??ed.cat; ed.icon=$('#edIcon')?.value??ed.icon;
   ed.type=$('#edType')?.value??ed.type; ed.source=$('#edSrc')?.value??ed.source;
   ed.serves=+$('#edServes')?.value||1;
+  ed.sweetMin=+$('#edSweetMin')?.value||0;
 }
 async function edSave(){
   edSync();
@@ -652,6 +669,7 @@ const AI_SCHEMA=`{
   "cat": "hotcoffee | coldcoffee | tea | smoothie | soda | special",
   "type": "hot | cold",
   "icon": "one emoji",
+  "sweetMin": 0,
   "serves": 1,
   "source": "original source / URL",
   "notes": {"en": "key tips in one or two sentences", "th": "เคล็ดลับสั้นๆ 1-2 ประโยค"},
@@ -693,7 +711,7 @@ async function aiDoImport(){
     const j=JSON.parse(txt);
     const bl = v => typeof v==='string' ? {en:v, th:v} : {en:String((v||{}).en||''), th:String((v||{}).th||(v||{}).en||'')};
     const r={id:uid(),seed:false,icon:j.icon||'🥤',cat:CATS.includes(j.cat)?j.cat:'coldcoffee',
-      type:j.type==='hot'?'hot':'cold',name:bl(j.name),serves:j.serves||1,
+      type:j.type==='hot'?'hot':'cold',name:bl(j.name),serves:j.serves||1,sweetMin:+j.sweetMin||0,
       source:String(j.source||''),notes:bl(j.notes),
       ingredients:(j.ingredients||[]).map(i=>({name:bl(i.name),amount:+i.amount||0,unit:String(i.unit||'ml'),cost:+i.cost||0,sweetener:!!i.sweetener})),
       steps:(j.steps||[]).map(s=>({t:bl(s.t),d:bl(s.d),m:+s.m||0}))};
@@ -1291,8 +1309,8 @@ function openHelp(tab){
 (async function(){
   try{
     await openDB();
-    const seeded=await kvGet('seeded-v1');
-    if(!seeded){ for(const s of SEEDS) if(!(await dbGet('drinks',s.id))) await dbPut('drinks',s); await kvSet('seeded-v1',true); }
+    const seeded=await kvGet('seeded-v2');
+    if(!seeded){ for(const s of SEEDS) if(!(await dbGet('drinks',s.id))) await dbPut('drinks',s); await kvSet('seeded-v2',true); }
     LANG=(await kvGet('lang'))||'en';
     const th=(await kvGet('theme'))||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
     document.body.dataset.theme=th;
