@@ -859,11 +859,15 @@ async function autoDeductStock(r, scale, sweetness, ice){
   for(const ing of r.ingredients){
     if(isIce(ing)) continue; // skip ice — handled by ice mode
     const used=ing.amount*scale*(isIce(ing)?(iceVol/(mlPerUnit(ing)*scale||0.001)):liquidScale)*(ing.sweetener?sweetness:1);
-    const name=tn(ing.name).toLowerCase();
+    const nameEN=(ing.name||{}).en||ing.name||'', nameTH=(ing.name||{}).th||'';
+    const names=[nameEN.toLowerCase(), nameTH.toLowerCase()];
     for(const s of stock){
       if(!s.name)continue;
-      const sn=s.name.toLowerCase();
-      if(name.includes(sn)||sn.includes(name.split(/[\s(（]/)[0])){
+      const sn=(typeof s.name==='string'?s.name:tn(s.name)).toLowerCase();
+      const snEN=((s.name||{}).en||'').toLowerCase(), snTH=((s.name||{}).th||'').toLowerCase();
+      const stockNames=[snEN,snTH,sn].filter(Boolean);
+            const match=names.some(n=>stockNames.some(sk=>sk&&(n.includes(sk)||sk.includes(n)||sk.includes(n.split(/[\s(（]/)[0]))));
+      if(match){
         s.qty=Math.max(0,(s.qty||0)-used);
         await dbPut('stock',s);
         break;
@@ -1025,7 +1029,7 @@ function uCalc(){const a=+$('#uAmt').value||0,u=$('#uUnit').value;
 
 /* ============ Stock tracker ============ */
 async function vStock(){
-  const items=(await dbAll('stock')).sort((a,b)=>a.name?.localeCompare?.(b.name)||0);
+  const items=(await dbAll('stock')).sort((a,b)=>(tn(a.name)||'').localeCompare?.(tn(b.name)||'')||0);
   $('#view').innerHTML=`<h1>${t('stock_title')}</h1><div class="tagline">${t('stock_sub')}</div>
   <div class="row" style="gap:8px">
     <button class="btn grow" onclick="stockEditor()">📦 ${t('stock_add')}</button>
@@ -1034,7 +1038,7 @@ async function vStock(){
   <div class="card" style="margin-top:14px;padding:0">
     ${items.map((s,i)=>{const low=s.min&&s.qty<=s.min;
       return `<div class="feeditem" style="cursor:pointer;padding:14px 16px;${i===0?'border-top:none':''}" onclick="stockEditor('${s.id}')"><div class="dot" style="background:${low?'var(--accent)':'var(--ok)'}"></div>
-      <div class="grow"><b>${esc(s.name)}</b> ${low?`<span class="badge" style="background:var(--accent)">${t('low_stock')}</span>`:''}
+      <div class="grow"><b>${esc(tn(s.name))}</b> ${low?`<span class="badge" style="background:var(--accent)">${t('low_stock')}</span>`:''}
         <div class="note">${s.qty} ${s.unit||''} ${s.cost!=null?`· ${s.cost} ฿/${s.unit||'unit'}`:''} ${s.min?`· Min: ${s.min} ${s.unit||''}`:''}</div>
         ${s.note?`<div class="note">${esc(s.note)}</div>`:''}
         <div class="note" style="font-size:11px">${s.updated?new Date(s.updated).toLocaleString(LANG==='th'?'th-TH':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</div></div>
@@ -1045,8 +1049,17 @@ async function vStock(){
 }
 async function stockEditor(id){
   const s=id?await dbGet('stock',id):null;
+  const stkLang=window.stockEditorLang||LANG;
+  window.stockEditorLang=stkLang;
+  const toBL=v=>typeof v==='string'?{en:v,th:v}:(v&&typeof v==='object'?{en:v.en||'',th:v.th||v.en||''}:{en:'',th:''});
+  const nm=toBL(s?.name||'');
   modal(`<h2>${id?t('edit'):t('stock_add')}</h2>
-  <label class="f">${t('stock_item')}</label><input id="stName" value="${esc(s?.name||'')}">
+  <div class="row" style="margin-bottom:8px">
+    <div class="seg" style="margin-left:auto">
+      <button class="${stkLang==='en'?'on':''}" onclick="window.stockEditorLang='en';stockEditor('${id||''}')">EN</button>
+      <button class="${stkLang==='th'?'on':''}" onclick="window.stockEditorLang='th';stockEditor('${id||''}')">TH</button>
+    </div></div>
+  <label class="f">${t('stock_item')} <span class="note">[${stkLang.toUpperCase()}]</span></label><input id="stName" value="${esc(nm[stkLang]||'')}">
   <div class="row" style="margin-top:4px">
     <div class="grow"><label class="f" style="margin-top:0">${t('stock_qty')}</label><input id="stQty" type="number" inputmode="decimal" min="0" value="${s?.qty||0}"></div>
     <div class="grow"><label class="f" style="margin-top:0">${t('stock_unit')}</label><input id="stUnit" value="${esc(s?.unit||'')}" placeholder="ml, g, bags..."></div>
@@ -1059,25 +1072,33 @@ async function stockEditor(id){
     <button class="btn grow" onclick="saveStock('${id||''}')">${t('save')}</button>
   </div>`);
   window.saveStock=async(existingId)=>{
-    const item={id:existingId||uid(),name:$('#stName')?.value, qty:+$('#stQty')?.value||0,
+    const old=existingId?await dbGet('stock',existingId):null;
+    const bn=toBL(old?.name||{});
+    bn[stockEditorLang]=$('#stName')?.value||'';
+    const item={id:existingId||uid(),name:bn, qty:+$('#stQty')?.value||0,
       unit:$('#stUnit')?.value, min:+$('#stMin')?.value||0, cost:+$('#stCost')?.value||0, note:$('#stNote')?.value, updated:Date.now()};
-    if(!item.name.trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อรายการ');
+    if(!bn.en.trim()&&!bn.th.trim())return toast(LANG==='en'?'Name required':'กรุณาใส่ชื่อรายการ');
     await dbPut('stock',item); closeModal(); toast(t('data_saved')); vStock();
   };
 }
 async function importStockFromMenu(){
   const drinks=await dbAll('drinks'), stock=await dbAll('stock');
-  const stockNames=stock.map(s=>(s.name||'').toLowerCase().trim());
+  const stockNames=stock.map(s=>{
+    const sn=typeof s.name==='string'?s.name:tn(s.name);
+    return (sn||'').toLowerCase().trim();
+  });
   let added=0;
   for(const r of drinks){
     for(const ing of r.ingredients||[]){
-      const name=tn(ing.name).trim(); if(!name||name.length<2)continue;
-      const n=name.toLowerCase();
-      if(stockNames.some(s=>s===n||s.includes(n)||n.includes(s)))continue;
+      const name=ing.name||{};
+      const disp=tn(name).trim(); if(!disp||disp.length<2)continue;
+      const n=disp.toLowerCase();
+      const alsoEN=((name.en||'').toLowerCase()), alsoTH=((name.th||'').toLowerCase());
+      if(stockNames.some(s=>s===n||s===alsoEN||s===alsoTH||s.includes(n)||n.includes(s)))continue;
       // Determine reasonable defaults
       const unit=ing.unit||'ml';
       const min=unit==='ml'?500:unit==='shot'?20:unit==='cup'?5:unit==='g'?200:10;
-      const item={id:uid(),name,unit,qty:min*2,min,cost:ing.cost||0,note:'Imported from menu',updated:Date.now()};
+      const item={id:uid(),name:typeof name==='string'?{en:name,th:name}:name,unit,qty:min*2,min,cost:ing.cost||0,note:'Imported from menu',updated:Date.now()};
       await dbPut('stock',item); stockNames.push(n); added++;
     }
   }
